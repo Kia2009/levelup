@@ -3,12 +3,11 @@ name = "backend"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Kia2009",email = "kkia.ghanati@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "django (>=5.2.4,<6.0.0)"
 ]
 
 
