@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException, status # type: ignore
 from pydantic import BaseModel, Field # type: ignore
 from uuid import UUID, uuid4
 from typing import List, Optional
+from schemas import *
+
 
 app = FastAPI(
     title="post manager",
@@ -9,17 +11,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-class Posts(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
-    title: str
-    contains: str
-    likes: int = 0
-    views: int = 0
-
-
-class PostCreate(BaseModel):
-    title: str = Field(..., min_length=3, description="The title of the post.")
-    contains: str = Field(..., min_length=3, description="post that user wants to share.")
 
 db: List[Posts] = [
     Posts(title="First Post", contains="This is the first example post.", likes=2, views=10),
