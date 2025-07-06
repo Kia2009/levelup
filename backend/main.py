@@ -13,6 +13,8 @@ class Posts(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     title: str
     contains: str
+    likes: int = 0
+    views: int = 0
 
 
 class PostCreate(BaseModel):
@@ -20,7 +22,9 @@ class PostCreate(BaseModel):
     contains: str = Field(..., min_length=3, description="post that user wants to share.")
 
 db: List[Posts] = [
-    
+    Posts(title="First Post", contains="This is the first example post.", likes=2, views=10),
+    Posts(title="Second Post", contains="Another example post for testing.", likes=5, views=25),
+    Posts(title="Hello World", contains="Welcome to the post manager API!", likes=1, views=5)
 ]
 
 
@@ -46,7 +50,7 @@ def create_post(post_create: PostCreate):
     - **contains**: The message of the post (must be at least 3 characters).
     """
     # Create a new Post instance from the request body
-    new_post = Posts(title=post_create.title , contains=post_create.contains)
+    new_post = Posts(title=post_create.title , contains=post_create.contains, likes=0, views=0)
     # Add it to our "database"
     db.append(new_post)
     return new_post
@@ -61,6 +65,28 @@ def get_post_by_id(post_id: UUID):
         if post.id == post_id:
             return post
     # If not found, raise an HTTP 404 error
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with ID {post_id} not found")
+
+@app.post("/posts/{post_id}/like", response_model=Posts, tags=["Posts"], summary="Like a post")
+def like_post(post_id: UUID, amount: int = 1):
+    """
+    Increment the number of likes for a post by a given amount (default is 1).
+    """
+    for post in db:
+        if post.id == post_id:
+            post.likes += amount
+            return post
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with ID {post_id} not found")
+
+@app.post("/posts/{post_id}/view", response_model=Posts, tags=["Posts"], summary="View a post")
+def view_post(post_id: UUID, amount: int = 1):
+    """
+    Increment the number of views for a post by a given amount (default is 1).
+    """
+    for post in db:
+        if post.id == post_id:
+            post.views += amount
+            return post
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with ID {post_id} not found")
 
 @app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Posts"], summary="Delete a Post")
