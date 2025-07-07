@@ -254,24 +254,29 @@ function MainFeed({showModal, setShowModal, newPost, setNewPost}:{showModal:bool
     }
   }, [newPost, setNewPost]);
 
-  // Increment view count, fetch updated post, and show in popup
+  // Increment view count and show in popup
   const handleOpenPost = async (post: Post) => {
-    await fetch(`${API_URL}/posts/${post.id}/view`, { method: 'POST' });
-    // Fetch updated post
-    const res = await fetch(`${API_URL}/posts/${post.id}`);
-    const updated = await res.json();
-    setSelectedPost(updated);
-    // Also update the post in the feed
-    setPosts(prev => prev.map(p => p.id === updated.id ? updated : p));
+    try {
+      const res = await fetch(`${API_URL}/posts/${post.id}/view`, { method: 'POST' });
+      const updated = await res.json();
+      setSelectedPost(updated);
+      // Update the post in the feed
+      setPosts(prev => prev.map(p => p.id === updated.id ? updated : p));
+    } catch (err) {
+      console.error('Failed to update view count:', err);
+      setSelectedPost(post); // Show popup anyway
+    }
   };
 
   const handleLike = async (id: string) => {
-    await fetch(`${API_URL}/posts/${id}/like`, { method: 'POST' });
-    // Update post in feed and popup
-    const res = await fetch(`${API_URL}/posts/${id}`);
-    const updated = await res.json();
-    setPosts(prev => prev.map(p => p.id === updated.id ? updated : p));
-    if (selectedPost && selectedPost.id === id) setSelectedPost(updated);
+    try {
+      const res = await fetch(`${API_URL}/posts/${id}/like`, { method: 'POST' });
+      const updated = await res.json();
+      setPosts(prev => prev.map(p => p.id === updated.id ? updated : p));
+      if (selectedPost && selectedPost.id === id) setSelectedPost(updated);
+    } catch (err) {
+      console.error('Failed to update like count:', err);
+    }
   };
 
   const handleDelete = async (id: string) => {

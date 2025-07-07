@@ -1,15 +1,15 @@
 from pydantic import BaseModel, Field # type: ignore
-from uuid import UUID, uuid4
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
 
 class Posts(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
+    id: str
+    created_at: datetime
     title: str
     contains: str
     likes: int = 0
     views: int = 0
 
-
 class PostCreate(BaseModel):
-    title: str = Field(..., min_length=3, description="The title of the post.")
+    title: str = Field(..., min_length=3, description="title of the post")
     contains: str = Field(..., min_length=3, description="post that user wants to share.")
