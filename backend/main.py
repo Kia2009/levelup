@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from pydantic import BaseModel, Field # type: ignore
 from uuid import UUID, uuid4
 from typing import List, Optional
@@ -9,6 +10,15 @@ app = FastAPI(
     title="post manager",
     description="A basic API to manage posts created by users.",
     version="1.0.0",
+)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # or ["*"] for all origins (less secure)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
