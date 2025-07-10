@@ -1,30 +1,21 @@
-from pydantic import BaseModel, Field # type: ignore
 from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel, Field  # type: ignore
+
 
 class Posts(BaseModel):
     id: str
     created_at: datetime
+    creator: str
     title: str
     contains: str
-    likes: int = 0
-    views: int = 0
+    likes: list[str] = []
+    views: list[str] = []
+
 
 class PostCreate(BaseModel):
     title: str = Field(..., min_length=3, description="title of the post")
-    contains: str = Field(..., min_length=3, description="post that user wants to share.")
-    user_id: Optional[str] = None
-    user_name: Optional[str] = None
-
-class User(BaseModel):
-    id: str
-    full_name: str
-    email: str
-    image_url: str
-    created_at: datetime
-
-class UserCreate(BaseModel):
-    id: str
-    full_name: str
-    email: str
-    image_url: str
+    contains: str = Field(
+        ..., min_length=3, description="post that user wants to share."
+    )

@@ -8,7 +8,8 @@ import {
   SignInButton,
   UserButton,
   SignOutButton,
-  useUser
+  useUser,
+  useAuth,
 } from "@clerk/clerk-react";
 
 const TEXT = {
@@ -82,8 +83,8 @@ interface Post {
   id: string;
   title: string;
   contains: string;
-  likes: number;
-  views: number;
+  likes: string[];
+  views: string[];
 }
 
 // Theme context
@@ -136,7 +137,9 @@ function useLang() {
 }
 
 function App() {
-  const [page, setPage] = useState<"feed" | "about" | "settings" | "profile">("feed");
+  const [page, setPage] = useState<"feed" | "about" | "settings" | "profile">(
+    "feed"
+  );
   const [showModal, setShowModal] = useState(false);
   const [newPost, setNewPost] = useState<Post | null>(null);
 
@@ -156,7 +159,11 @@ function App() {
       <LangProvider>
         <div style={{ position: "absolute", top: 16, right: 32, zIndex: 10 }}>
           <SignedIn>
-            <UserButton appearance={{ elements: { avatarBox: { width: 72, height: 72 } } }} />
+            <UserButton
+              appearance={{
+                elements: { avatarBox: { width: 72, height: 72 } },
+              }}
+            />
           </SignedIn>
         </div>
         <div className={`app-layout`}>
@@ -185,17 +192,29 @@ function Sidebar({
 }) {
   const { lang } = useLang();
   return (
-    <aside className="sidebar">
-      <div className="logo">LevelUp</div>
+    <aside className='sidebar'>
+      <div className='logo'>LevelUp</div>
       <nav>
-        <a href="#" onClick={() => setPage("feed")}> {TEXT[lang].home} </a>
-        <a href="#" onClick={() => setPage("about")}> {TEXT[lang].about} </a>
-        <a href="#" onClick={() => setPage("settings")}> {TEXT[lang].settings} </a>
-        <a href="#" onClick={() => setPage("profile")}> {lang === "fa" ? "پروفایل" : "Profile"} </a>
-        <a href="#rights">{TEXT[lang].rights}</a>
+        <a href='#' onClick={() => setPage("feed")}>
+          {" "}
+          {TEXT[lang].home}{" "}
+        </a>
+        <a href='#' onClick={() => setPage("about")}>
+          {" "}
+          {TEXT[lang].about}{" "}
+        </a>
+        <a href='#' onClick={() => setPage("settings")}>
+          {" "}
+          {TEXT[lang].settings}{" "}
+        </a>
+        <a href='#' onClick={() => setPage("profile")}>
+          {" "}
+          {lang === "fa" ? "پروفایل" : "Profile"}{" "}
+        </a>
+        <a href='#rights'>{TEXT[lang].rights}</a>
       </nav>
       <button
-        className="sidebar-add-post-btn"
+        className='sidebar-add-post-btn'
         onClick={() => setShowModal(true)}
       >
         {TEXT[lang].addPost}
@@ -252,14 +271,30 @@ function ProfilePage() {
   const { user, isSignedIn } = useUser();
   const { lang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
       </header>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, marginTop: 32 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 24,
+          marginTop: 32,
+        }}
+      >
         <SignedIn>
-          <UserButton appearance={{ elements: { avatarBox: { width: 120, height: 120 } } }} />
-          <div style={{ fontSize: 22, fontWeight: 600, marginTop: 16 }}>{user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress}</div>
+          <UserButton
+            appearance={{
+              elements: { avatarBox: { width: 120, height: 120 } },
+            }}
+          />
+          <div style={{ fontSize: 22, fontWeight: 600, marginTop: 16 }}>
+            {user?.fullName ||
+              user?.username ||
+              user?.primaryEmailAddress?.emailAddress}
+          </div>
           <div style={{ color: "#888", fontSize: 16 }}>{user?.id}</div>
           <SignOutButton>
             <button style={{ width: 220, fontSize: 18, marginTop: 32 }}>
@@ -268,7 +303,7 @@ function ProfilePage() {
           </SignOutButton>
         </SignedIn>
         <SignedOut>
-          <SignInButton forceRedirectUrl="/" />
+          <SignInButton forceRedirectUrl='/' />
         </SignedOut>
       </div>
     </main>
@@ -294,6 +329,7 @@ function CreatePostModal({
   const [loading, setLoading] = useState(false);
   const isFarsiTitle = detectFarsi(title);
   const isFarsiContains = detectFarsi(contains);
+  const { getToken } = useAuth();
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -307,10 +343,14 @@ function CreatePostModal({
     }
     setError("");
     setLoading(true);
+    const token = await getToken({ template: "fullname" });
     try {
       const res = await fetch(`${API_URL}/posts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ title, contains }),
       });
       if (!res.ok) throw new Error("Failed to create post");
@@ -326,18 +366,18 @@ function CreatePostModal({
   };
 
   return (
-    <div className="popup-backdrop" onClick={onClose}>
+    <div className='popup-backdrop' onClick={onClose}>
       <form
-        className="popup-card create-modal no-scroll"
+        className='popup-card create-modal no-scroll'
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleCreate}
       >
-        <button className="popup-close" onClick={onClose} type="button">
+        <button className='popup-close' onClick={onClose} type='button'>
           &times;
         </button>
         <h2>{TEXT[lang].addPostTitle}</h2>
         <input
-          type="text"
+          type='text'
           placeholder={TEXT[lang].postTitle}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -369,10 +409,10 @@ function CreatePostModal({
                 : "Inter, sans-serif",
           }}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? TEXT[lang].posting : TEXT[lang].post}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className='error'>{error}</div>}
       </form>
     </div>
   );
@@ -395,6 +435,7 @@ function MainFeed({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const { getToken } = useAuth();
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -426,8 +467,13 @@ function MainFeed({
   // Increment view count and show in popup
   const handleOpenPost = async (post: Post) => {
     try {
+      const token = await getToken({ template: "fullname" });
       const res = await fetch(`${API_URL}/posts/${post.id}/view`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
       const updated = await res.json();
       setSelectedPost(updated);
@@ -441,8 +487,13 @@ function MainFeed({
 
   const handleLike = async (id: string) => {
     try {
+      const token = await getToken({ template: "fullname" });
       const res = await fetch(`${API_URL}/posts/${id}/like`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
       const updated = await res.json();
       setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
@@ -453,24 +504,31 @@ function MainFeed({
   };
 
   const handleDelete = async (id: string) => {
-    await fetch(`${API_URL}/posts/${id}`, { method: "DELETE" });
+    const token = await getToken({ template: "fullname" });
+    await fetch(`${API_URL}/posts/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     setPosts((prev) => prev.filter((p) => p.id !== id));
     if (selectedPost && selectedPost.id === id) setSelectedPost(null);
   };
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].feed}</h1>
       </header>
-      {error && <div className="error">{error}</div>}
-      <div className="post-feed-scroll hide-scrollbar">
+      {error && <div className='error'>{error}</div>}
+      <div className='post-feed-scroll hide-scrollbar'>
         {loading ? (
           <div>{TEXT[lang].loading}</div>
         ) : posts.length === 0 ? (
           <div>{TEXT[lang].noPosts}</div>
         ) : (
-          <ul className="post-list">
+          <ul className='post-list'>
             {posts.map((post) => (
               <li
                 key={post.id}
@@ -481,30 +539,30 @@ function MainFeed({
                 tabIndex={0}
                 style={{ cursor: "pointer" }}
               >
-                <div className="post-header">
+                <div className='post-header'>
                   <h2>{post.title}</h2>
                   <button
-                    className="delete"
+                    className='delete'
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(post.id);
                     }}
-                    title="Delete"
+                    title='Delete'
                   >
                     ×
                   </button>
                 </div>
                 <p>{post.contains}</p>
-                <div className="post-actions">
+                <div className='post-actions'>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleLike(post.id);
                     }}
                   >
-                    ❤️ {post.likes}
+                    ❤️ {post.likes.length}
                   </button>
-                  <span>👁️ {post.views}</span>
+                  <span>👁️ {post.views.length}</span>
                 </div>
               </li>
             ))}
@@ -512,21 +570,21 @@ function MainFeed({
         )}
       </div>
       {selectedPost && (
-        <div className="popup-backdrop" onClick={() => setSelectedPost(null)}>
-          <div className="popup-card" onClick={(e) => e.stopPropagation()}>
+        <div className='popup-backdrop' onClick={() => setSelectedPost(null)}>
+          <div className='popup-card' onClick={(e) => e.stopPropagation()}>
             <button
-              className="popup-close"
+              className='popup-close'
               onClick={() => setSelectedPost(null)}
             >
               &times;
             </button>
             <h2>{selectedPost.title}</h2>
             <p>{selectedPost.contains}</p>
-            <div className="post-actions">
+            <div className='post-actions'>
               <button onClick={() => handleLike(selectedPost.id)}>
-                ❤️ {selectedPost.likes}
+                ❤️ {selectedPost.likes.length}
               </button>
-              <span>👁️ {selectedPost.views}</span>
+              <span>👁️ {selectedPost.views.length}</span>
             </div>
           </div>
         </div>
@@ -538,11 +596,11 @@ function MainFeed({
 function AboutPage() {
   const { lang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].aboutTitle}</h1>
       </header>
-      <div className="about-content">
+      <div className='about-content'>
         <p dangerouslySetInnerHTML={{ __html: TEXT[lang].aboutContent }} />
         <ul>
           {TEXT[lang].aboutList.map((item, i) => (
@@ -558,14 +616,14 @@ function SettingsPage() {
   const { theme, toggle } = useTheme();
   const { lang, setLang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{lang === "fa" ? "تنظیمات" : "Settings"}</h1>
       </header>
-      <div className="settings-content">
-        <div className="setting-row">
+      <div className='settings-content'>
+        <div className='setting-row'>
           <span>{lang === "fa" ? "حالت نمایش" : "Theme"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={theme === "light" ? "active" : ""}
               onClick={() => theme !== "light" && toggle()}
@@ -580,9 +638,9 @@ function SettingsPage() {
             </button>
           </div>
         </div>
-        <div className="setting-row">
+        <div className='setting-row'>
           <span>{lang === "fa" ? "زبان" : "Language"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={lang === "en" ? "active" : ""}
               onClick={() => lang !== "en" && setLang("en")}
@@ -605,9 +663,9 @@ function SettingsPage() {
 function Footer() {
   const { lang } = useLang();
   return (
-    <footer className="footer">
+    <footer className='footer'>
       <div>{TEXT[lang].createdBy}</div>
-      <div id="rights">
+      <div id='rights'>
         {TEXT[lang].allRights} &copy; {new Date().getFullYear()}
       </div>
     </footer>
