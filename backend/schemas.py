@@ -13,3 +13,18 @@ class Posts(BaseModel):
 class PostCreate(BaseModel):
     title: str = Field(..., min_length=3, description="title of the post")
     contains: str = Field(..., min_length=3, description="post that user wants to share.")
+    user_id: Optional[str] = None
+    user_name: Optional[str] = None
+
+class User(BaseModel):
+    id: str
+    full_name: str
+    email: str
+    image_url: str
+    created_at: datetime
+
+class UserCreate(BaseModel):
+    id: str
+    full_name: str
+    email: str
+    image_url: str

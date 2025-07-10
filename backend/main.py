@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status  # type: ignore
+from fastapi import FastAPI, HTTPException, status, Body  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 from typing import List
 from schemas import *
@@ -54,7 +54,13 @@ def create_post(post_create: PostCreate):
     - **contains**: The message of the post (must be at least 3 characters).
     """
     result = supabase.table('posts').insert(
-        {'title': post_create.title, 'contains': post_create.contains}).execute()
+        {
+            'title': post_create.title,
+            'contains': post_create.contains,
+            'user_id': post_create.user_id,
+            'user_name': post_create.user_name,
+        }
+    ).execute()
     return result.data[0]
 
 
@@ -101,12 +107,23 @@ def view_post(post_id: str):
 
 
 @app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Posts"], summary="Delete a Post")
-def delete_post(post_id: str):
-    """
-    Delete a post by its unique ID.
-    """
-    result = supabase.table('posts').delete().eq('id', post_id).execute()
-    if not result.data:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with ID {post_id} not found")
+def delete_post(post_id: str, user_id: str = Body(...)):
+    # Check if post exists and belongs to user
+    post = supabase.table('posts').select('user_id').eq('id', post_id).single().execute()
+    if not post.data or post.data['user_id'] != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed to delete this post")
+    supabase.table('posts').delete().eq('id', post_id).execute()
     return
+
+@app.post("/users", response_model=User, tags=["Users"], summary="Create or update a user from Clerk info")
+def upsert_user(user: UserCreate):
+    # Try to upsert user by id
+    result = supabase.table('users').upsert({
+        'id': user.id,
+        'full_name': user.full_name,
+        'email': user.email,
+        'image_url': user.image_url
+    }, on_conflict=['id']).execute()
+    # Fetch the user (should be only one)
+    user_row = supabase.table('users').select('*').eq('id', user.id).single().execute()
+    return user_row.data
