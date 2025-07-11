@@ -5,9 +5,10 @@ from pydantic import BaseModel, Field  # type: ignore
 
 
 class Posts(BaseModel):
-    id: str
+    id: int
     created_at: datetime
     creator: str
+    user_id: str
     title: str
     contains: str
     likes: list[str] = []
