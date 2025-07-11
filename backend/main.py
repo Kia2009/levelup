@@ -112,6 +112,24 @@ def like_post(post_id: str, user=Depends(get_current_user)):
     return result.data[0]
 
 
+@app.delete("/posts/{post_id}/like", response_model=Posts)
+def delet_like_post(post_id: str, user=Depends(get_current_user)):
+    # Get current likes
+    current = supabase.table("posts").select("likes").eq("id", post_id).execute()
+    if not current.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with ID {post_id} not found",
+        )
+    likes = current.data[0]["likes"] or []
+    if user.get("sub") in likes:
+        likes = list(set(likes) - {user.get("sub")})
+    result = (
+        supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
+    )
+    return result.data[0]
+
+
 @app.post("/posts/{post_id}/view", response_model=Posts)
 def view_post(post_id: str, user=Depends(get_current_user)):
     current = supabase.table("posts").select("views").eq("id", post_id).execute()

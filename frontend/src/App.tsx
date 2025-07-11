@@ -85,6 +85,101 @@ interface Post {
   contains: string;
   likes: string[];
   views: string[];
+  user_id: string;
+  creator: string;
+  created_at: string;
+}
+
+function PostCard({
+  post,
+  onLike,
+  onDelete,
+  currentUserId,
+}: {
+  post: Post;
+  onLike: (id: string) => void;
+  onDelete: (id: string) => void;
+  currentUserId: string;
+}) {
+  const { lang } = useLang();
+  const isOwner = post.user_id === currentUserId; // Compare user_id with current user
+  const { getToken } = useAuth();
+  const hasLiked = post.likes.includes(currentUserId);
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onLike(post.id);
+  };
+
+  useEffect(() => {
+    const updateViews = async () => {
+      try {
+        const token = await getToken({ template: "fullname" });
+        const res = await fetch(`${API_URL}/posts/${post.id}/view`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to update view count");
+      } catch (err) {
+        console.error("Failed to update view count:", err);
+      }
+    };
+
+    if (currentUserId) {
+      // Only track views for logged-in users
+      updateViews();
+    }
+  }, [post.id, currentUserId]);
+
+  return (
+    <li className={`post-card ${lang === "fa" ? "farsi-font" : ""}`}>
+      <div className='post-card-header'>
+        <div className='post-meta'>
+          <h2>{post.title}</h2>
+          <span className='post-author'>@{post.creator}</span>{" "}
+          {/* Use creator field */}
+          <span className='post-date'>
+            {new Date(post.created_at).toLocaleDateString()}
+          </span>
+        </div>
+        {isOwner && ( // Only show delete button if user is owner
+          <button
+            className='delete-btn'
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(post.id);
+            }}
+            title='Delete'
+          >
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' />
+            </svg>
+          </button>
+        )}
+      </div>
+      <p className='post-content'>{post.contains}</p>
+      <div className='post-actions'>
+        <button
+          className={`like-btn ${hasLiked ? "liked" : ""}`}
+          onClick={handleLikeClick}
+        >
+          <svg viewBox='0 0 24 24' width='24' height='24'>
+            <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
+          </svg>
+          <span className='like-count'>{post.likes.length}</span>
+        </button>
+        <div className='view-count'>
+          <svg viewBox='0 0 24 24' width='20' height='20'>
+            <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
+          </svg>
+          <span>{post.views.length}</span>
+        </div>
+      </div>
+    </li>
+  );
 }
 
 // Theme context
@@ -436,6 +531,7 @@ function MainFeed({
   const [error, setError] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const { getToken } = useAuth();
+  const { user } = useUser(); // Add this at the top of MainFeed
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -488,18 +584,23 @@ function MainFeed({
   const handleLike = async (id: string) => {
     try {
       const token = await getToken({ template: "fullname" });
+      // Check if user has already liked the post
+      const post = posts.find((p) => p.id === id);
+      const hasLiked = post?.likes.includes(user?.id || "");
+
       const res = await fetch(`${API_URL}/posts/${id}/like`, {
-        method: "POST",
+        method: hasLiked ? "DELETE" : "POST", // Use DELETE for unlike, POST for like
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
+
       const updated = await res.json();
       setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       if (selectedPost && selectedPost.id === id) setSelectedPost(updated);
     } catch (err) {
-      console.error("Failed to update like count:", err);
+      console.error("Failed to update like:", err);
     }
   };
 
@@ -530,41 +631,13 @@ function MainFeed({
         ) : (
           <ul className='post-list'>
             {posts.map((post) => (
-              <li
+              <PostCard
                 key={post.id}
-                className={`post beautiful-card${
-                  lang === "fa" ? " farsi-font" : ""
-                }`}
-                onClick={() => handleOpenPost(post)}
-                tabIndex={0}
-                style={{ cursor: "pointer" }}
-              >
-                <div className='post-header'>
-                  <h2>{post.title}</h2>
-                  <button
-                    className='delete'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(post.id);
-                    }}
-                    title='Delete'
-                  >
-                    ×
-                  </button>
-                </div>
-                <p>{post.contains}</p>
-                <div className='post-actions'>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLike(post.id);
-                    }}
-                  >
-                    ❤️ {post.likes.length}
-                  </button>
-                  <span>👁️ {post.views.length}</span>
-                </div>
-              </li>
+                post={post}
+                onLike={handleLike}
+                onDelete={handleDelete}
+                currentUserId={user?.id || ""}
+              />
             ))}
           </ul>
         )}
