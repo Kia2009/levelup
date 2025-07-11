@@ -324,7 +324,6 @@ function MainArea({
   showModal,
   newPost,
   setNewPost,
-  setPage,
 }: {
   page: "feed" | "about" | "settings" | "profile";
   setShowModal: (b: boolean) => void;
@@ -363,7 +362,7 @@ function MainArea({
 }
 
 function ProfilePage() {
-  const { user, isSignedIn } = useUser();
+  const { user } = useUser();
   const { lang } = useLang();
   return (
     <main className='main-feed'>
@@ -514,8 +513,6 @@ function CreatePostModal({
 }
 
 function MainFeed({
-  showModal,
-  setShowModal,
   newPost,
   setNewPost,
 }: {
@@ -525,7 +522,7 @@ function MainFeed({
   setNewPost: (p: Post | null) => void;
 }) {
   const { lang } = useLang();
-  const { theme } = useTheme();
+  useTheme();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -561,25 +558,6 @@ function MainFeed({
   }, [newPost, setNewPost]);
 
   // Increment view count and show in popup
-  const handleOpenPost = async (post: Post) => {
-    try {
-      const token = await getToken({ template: "fullname" });
-      const res = await fetch(`${API_URL}/posts/${post.id}/view`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const updated = await res.json();
-      setSelectedPost(updated);
-      // Update the post in the feed
-      setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    } catch (err) {
-      console.error("Failed to update view count:", err);
-      setSelectedPost(post); // Show popup anyway
-    }
-  };
 
   const handleLike = async (id: string) => {
     try {
