@@ -1,7 +1,5 @@
 import React, { useEffect, useState, createContext, useContext } from "react";
 import "./App.css";
-//import SunIcon from "./assets/SunIcon";
-//import MoonIcon from "./assets/MoonIcon";
 import {
   SignedIn,
   SignedOut,
@@ -77,9 +75,9 @@ const TEXT = {
   },
 };
 
-const API_URL = "http://localhost:8000"; // Adjust if backend runs elsewhere
+const API_URL = "http://localhost:8000";
 
-interface Post {
+interface PostDisponivel {
   id: string;
   title: string;
   contains: string;
@@ -96,13 +94,14 @@ function PostCard({
   onDelete,
   currentUserId,
 }: {
-  post: Post;
+  post: PostDisponivel;
   onLike: (id: string) => void;
   onDelete: (id: string) => void;
   currentUserId: string;
 }) {
-  const { lang } = useLang();
-  const isOwner = post.user_id === currentUserId; // Compare user_id with current user
+  useLang();
+  const isFarsi = /[\u0600-\u06FF]/.test(post.contains); // Detect Farsi content
+  const isOwner = post.user_id === currentUserId;
   const { getToken } = useAuth();
   const hasLiked = post.likes.includes(currentUserId);
 
@@ -129,23 +128,24 @@ function PostCard({
     };
 
     if (currentUserId) {
-      // Only track views for logged-in users
       updateViews();
     }
   }, [post.id, currentUserId]);
 
   return (
-    <li className={`post-card ${lang === "fa" ? "farsi-font" : ""}`}>
+    <li
+      className={`post-card ${isFarsi ? "farsi-font" : "latin-font"}`}
+      style={{ direction: isFarsi ? "rtl" : "ltr", textAlign: "center" }}
+    >
       <div className='post-card-header'>
         <div className='post-meta'>
           <h2>{post.title}</h2>
-          <span className='post-author'>@{post.creator}</span>{" "}
-          {/* Use creator field */}
+          <span className='post-author'>@{post.creator}</span>
           <span className='post-date'>
             {new Date(post.created_at).toLocaleDateString()}
           </span>
         </div>
-        {isOwner && ( // Only show delete button if user is owner
+        {isOwner && (
           <button
             className='delete-btn'
             onClick={(e) => {
@@ -161,7 +161,7 @@ function PostCard({
         )}
       </div>
       <p className='post-content'>{post.contains}</p>
-      <div className='post-actions'>
+      <div className='post-actions' style={{ direction: "ltr" }}>
         <button
           className={`like-btn ${hasLiked ? "liked" : ""}`}
           onClick={handleLikeClick}
@@ -182,7 +182,6 @@ function PostCard({
   );
 }
 
-// Theme context
 const ThemeContext = createContext<{ theme: string; toggle: () => void }>({
   theme: "light",
   toggle: () => {},
@@ -218,6 +217,7 @@ function LangProvider({ children }: { children: React.ReactNode }) {
   );
   useEffect(() => {
     document.body.setAttribute("data-lang", lang);
+    document.body.dir = lang === "fa" ? "rtl" : "ltr";
     localStorage.setItem("lang", lang);
   }, [lang]);
   return (
@@ -231,14 +231,51 @@ function useLang() {
   return useContext(LangContext);
 }
 
+function Header({
+  setPage,
+  setShowModal,
+}: {
+  setPage: (p: "feed" | "about" | "settings" | "profile") => void;
+  setShowModal: (b: boolean) => void;
+}) {
+  const { lang } = useLang();
+  return (
+    <header className='app-header'>
+      <div className='logo'>LevelUp</div>
+      <nav>
+        <a href='#' onClick={() => setPage("feed")}>
+          {TEXT[lang].home}
+        </a>
+        <a href='#' onClick={() => setPage("about")}>
+          {TEXT[lang].about}
+        </a>
+        <a href='#' onClick={() => setPage("settings")}>
+          {TEXT[lang].settings}
+        </a>
+        <a href='#' onClick={() => setPage("profile")}>
+          {lang === "fa" ? "پروفایل" : "Profile"}
+        </a>
+        <a href='#rights'>{TEXT[lang].rights}</a>
+      </nav>
+      <button onClick={() => setShowModal(true)}>{TEXT[lang].addPost}</button>
+      <div className='user-button'>
+        <SignedIn>
+          <UserButton
+            appearance={{ elements: { avatarBox: { width: 40, height: 40 } } }}
+          />
+        </SignedIn>
+      </div>
+    </header>
+  );
+}
+
 function App() {
   const [page, setPage] = useState<"feed" | "about" | "settings" | "profile">(
     "feed"
   );
   const [showModal, setShowModal] = useState(false);
-  const [newPost, setNewPost] = useState<Post | null>(null);
+  const [newPost, setNewPost] = useState<PostDisponivel | null>(null);
 
-  // Redirect to feed after sign-in
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("sign-in")) {
@@ -247,22 +284,11 @@ function App() {
     }
   }, []);
 
-  // Large profile picture in top right
-  // Always show, but only for signed in users
   return (
     <ThemeProvider>
       <LangProvider>
-        <div style={{ position: "absolute", top: 16, right: 32, zIndex: 10 }}>
-          <SignedIn>
-            <UserButton
-              appearance={{
-                elements: { avatarBox: { width: 72, height: 72 } },
-              }}
-            />
-          </SignedIn>
-        </div>
-        <div className={`app-layout`}>
-          <Sidebar setPage={setPage} setShowModal={setShowModal} />
+        <div className='app-layout'>
+          <Header setPage={setPage} setShowModal={setShowModal} />
           <MainArea
             page={page}
             setShowModal={setShowModal}
@@ -278,46 +304,6 @@ function App() {
   );
 }
 
-function Sidebar({
-  setPage,
-  setShowModal,
-}: {
-  setPage: (p: "feed" | "about" | "settings" | "profile") => void;
-  setShowModal: (b: boolean) => void;
-}) {
-  const { lang } = useLang();
-  return (
-    <aside className='sidebar'>
-      <div className='logo'>LevelUp</div>
-      <nav>
-        <a href='#' onClick={() => setPage("feed")}>
-          {" "}
-          {TEXT[lang].home}{" "}
-        </a>
-        <a href='#' onClick={() => setPage("about")}>
-          {" "}
-          {TEXT[lang].about}{" "}
-        </a>
-        <a href='#' onClick={() => setPage("settings")}>
-          {" "}
-          {TEXT[lang].settings}{" "}
-        </a>
-        <a href='#' onClick={() => setPage("profile")}>
-          {" "}
-          {lang === "fa" ? "پروفایل" : "Profile"}{" "}
-        </a>
-        <a href='#rights'>{TEXT[lang].rights}</a>
-      </nav>
-      <button
-        className='sidebar-add-post-btn'
-        onClick={() => setShowModal(true)}
-      >
-        {TEXT[lang].addPost}
-      </button>
-    </aside>
-  );
-}
-
 function MainArea({
   page,
   setShowModal,
@@ -328,16 +314,14 @@ function MainArea({
   page: "feed" | "about" | "settings" | "profile";
   setShowModal: (b: boolean) => void;
   showModal: boolean;
-  newPost: Post | null;
-  setNewPost: (p: Post | null) => void;
+  newPost: PostDisponivel | null;
+  setNewPost: (p: PostDisponivel | null) => void;
   setPage: (p: "feed" | "about" | "settings" | "profile") => void;
 }) {
   const { lang } = useLang();
   if (page === "profile") return <ProfilePage />;
   return (
     <div className={`main-area${lang === "fa" ? " farsi-font" : ""}`}>
-      {" "}
-      {/* for RTL */}
       {page === "feed" && (
         <MainFeed
           showModal={showModal}
@@ -369,15 +353,7 @@ function ProfilePage() {
       <header className='main-header'>
         <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
       </header>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 24,
-          marginTop: 32,
-        }}
-      >
+      <div className='profile-card'>
         <SignedIn>
           <UserButton
             appearance={{
@@ -405,7 +381,6 @@ function ProfilePage() {
 }
 
 function detectFarsi(text: string) {
-  // Farsi Unicode range: \u0600-\u06FF
   return /[\u0600-\u06FF]/.test(text);
 }
 
@@ -414,7 +389,7 @@ function CreatePostModal({
   onCreated,
 }: {
   onClose: () => void;
-  onCreated: (post: Post) => void;
+  onCreated: (post: PostDisponivel) => void;
 }) {
   const { lang } = useLang();
   const [title, setTitle] = useState("");
@@ -467,7 +442,7 @@ function CreatePostModal({
         onSubmit={handleCreate}
       >
         <button className='popup-close' onClick={onClose} type='button'>
-          &times;
+          ×
         </button>
         <h2>{TEXT[lang].addPostTitle}</h2>
         <input
@@ -518,17 +493,17 @@ function MainFeed({
 }: {
   showModal: boolean;
   setShowModal: (b: boolean) => void;
-  newPost: Post | null;
-  setNewPost: (p: Post | null) => void;
+  newPost: PostDisponivel | null;
+  setNewPost: (p: PostDisponivel | null) => void;
 }) {
   const { lang } = useLang();
   useTheme();
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostDisponivel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedPost, setSelectedPost] = useState<PostDisponivel | null>(null);
   const { getToken } = useAuth();
-  const { user } = useUser(); // Add this at the top of MainFeed
+  const { user } = useUser();
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -549,7 +524,6 @@ function MainFeed({
     fetchPosts();
   }, []);
 
-  // Add new post to feed immediately
   useEffect(() => {
     if (newPost) {
       setPosts((prev) => [newPost, ...prev]);
@@ -557,17 +531,14 @@ function MainFeed({
     }
   }, [newPost, setNewPost]);
 
-  // Increment view count and show in popup
-
   const handleLike = async (id: string) => {
     try {
       const token = await getToken({ template: "fullname" });
-      // Check if user has already liked the post
       const post = posts.find((p) => p.id === id);
       const hasLiked = post?.likes.includes(user?.id || "");
 
       const res = await fetch(`${API_URL}/posts/${id}/like`, {
-        method: hasLiked ? "DELETE" : "POST", // Use DELETE for unlike, POST for like
+        method: hasLiked ? "DELETE" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -627,7 +598,7 @@ function MainFeed({
               className='popup-close'
               onClick={() => setSelectedPost(null)}
             >
-              &times;
+              ×
             </button>
             <h2>{selectedPost.title}</h2>
             <p>{selectedPost.contains}</p>
@@ -717,7 +688,7 @@ function Footer() {
     <footer className='footer'>
       <div>{TEXT[lang].createdBy}</div>
       <div id='rights'>
-        {TEXT[lang].allRights} &copy; {new Date().getFullYear()}
+        {TEXT[lang].allRights} © {new Date().getFullYear()}
       </div>
     </footer>
   );
