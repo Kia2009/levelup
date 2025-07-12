@@ -1,19 +1,16 @@
-[project]
+[tool.poetry]
 name = "backend"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Kia2009",email = "kkia.ghanati@gmail.com"}
-]
+authors = ["Kia2009 <kkia.ghanati@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "fastapi[all] (>=0.115.14,<0.116.0)",
-    "python-dotenv>=1.0.0",
-    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
-    "httpx (>=0.28.1,<0.29.0)"
-]
 
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["all"], version = ">=0.115.14,<0.116.0"}
+python-dotenv = "^1.0.0"
+python-jose = {extras = ["cryptography"], version = ">=3.5.0,<4.0.0"}
+httpx = ">=0.28.1,<0.29.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
