@@ -2,11 +2,11 @@ import os
 from typing import List
 
 from auth import get_current_user
-from dotenv import load_dotenv  # type: ignore
-from fastapi import Body, Depends, FastAPI, HTTPException, status  # type: ignore
-from fastapi.middleware.cors import CORSMiddleware  # type: ignore
-from schemas import PostCreate, Posts
-from supabase import Client, create_client  # type: ignore
+from dotenv import load_dotenv # type: ignore
+from fastapi import Body, Depends, FastAPI, HTTPException, status # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
+from schemas import PostCreate, Posts, Comment, CommentCreate
+from supabase import Client, create_client # type: ignore
 
 load_dotenv()
 
@@ -29,7 +29,6 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-
 @app.get("/", tags=["General"], summary="Root endpoint with a welcome message")
 def read_root():
     """
@@ -37,17 +36,13 @@ def read_root():
     """
     return {"message": "Welcome to Post API! Visit /docs for the API documentation."}
 
-
 @app.get("/posts", response_model=List[Posts], tags=["Posts"], summary="Get all Posts")
 def get_all_posts():
     """
     Retrieve a list of all posts currently in the database.
     """
-    result = (
-        supabase.table("posts").select("*").order("created_at", desc=True).execute()
-    )
+    result = supabase.table("posts").select("*").order("created_at", desc=True).execute()
     return result.data
-
 
 @app.post(
     "/posts",
@@ -74,7 +69,6 @@ def create_post(post_create: PostCreate, user=Depends(get_current_user)):
     )
     return result.data[0]
 
-
 @app.get(
     "/posts/{post_id}",
     response_model=Posts,
@@ -93,7 +87,6 @@ def get_post_by_id(post_id: int):
         )
     return result.data[0]
 
-
 @app.post("/posts/{post_id}/like", response_model=Posts)
 def like_post(post_id: str, user=Depends(get_current_user)):
     # Get current likes
@@ -111,9 +104,8 @@ def like_post(post_id: str, user=Depends(get_current_user)):
     )
     return result.data[0]
 
-
 @app.delete("/posts/{post_id}/like", response_model=Posts)
-def delet_like_post(post_id: str, user=Depends(get_current_user)):
+def delete_like_post(post_id: str, user=Depends(get_current_user)):
     # Get current likes
     current = supabase.table("posts").select("likes").eq("id", post_id).execute()
     if not current.data:
@@ -128,7 +120,6 @@ def delet_like_post(post_id: str, user=Depends(get_current_user)):
         supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
     )
     return result.data[0]
-
 
 @app.post("/posts/{post_id}/view", response_model=Posts)
 def view_post(post_id: str, user=Depends(get_current_user)):
@@ -145,7 +136,6 @@ def view_post(post_id: str, user=Depends(get_current_user)):
         supabase.table("posts").update({"views": views}).eq("id", post_id).execute()
     )
     return result.data[0]
-
 
 @app.delete(
     "/posts/{post_id}",
@@ -165,3 +155,53 @@ def delete_post(post_id: str, user=Depends(get_current_user)):
         )
     supabase.table("posts").delete().eq("id", post_id).execute()
     return
+
+@app.post(
+    "/posts/{post_id}/comments",
+    response_model=Comment,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Comments"],
+    summary="Create a new comment for a post",
+)
+def create_comment(post_id: int, comment_create: CommentCreate, user=Depends(get_current_user)):
+    """
+    Create a comment for a specific post.
+    - **content**: The content of the comment (must be at least 1 character).
+    """
+    # Check if post exists
+    post = supabase.table("posts").select("id").eq("id", post_id).execute()
+    if not post.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with ID {post_id} not found",
+        )
+    result = (
+        supabase.table("comments")
+        .insert({
+            "post_id": post_id,
+            "content": comment_create.content,
+            "creator": user.get("name"),
+            "user_id": user.get("sub"),
+        })
+        .execute()
+    )
+    return result.data[0]
+
+@app.get(
+    "/posts/{post_id}/comments",
+    response_model=List[Comment],
+    tags=["Comments"],
+    summary="Get all comments for a post",
+)
+def get_comments(post_id: int):
+    """
+    Retrieve all comments for a specific post, ordered by creation time.
+    """
+    result = (
+        supabase.table("comments")
+        .select("*")
+        .eq("post_id", post_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data
