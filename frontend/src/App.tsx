@@ -19,14 +19,14 @@ const TEXT = {
     addPost: "Add Post",
     feed: "LevelUp Feed",
     aboutTitle: "About LevelUp",
-    aboutContent: `<b>LevelUp</b> is a modern, student-focused social platform inspired by Twitter/X, designed for students to share posts, like, and interact in a beautiful, fast, and accessible environment. Built with React (Vite) and FastAPI, it features dark/light mode, Farsi/English font support, and a clean, responsive UI. Created by KGH & TKZ.`,
+    aboutContent: `<b>LevelUp</b> is a modern, student-focused social platform inspired by Twitter/X, designed for students to share posts, like, and interact in a beautiful, fast, and accessible environment. Built with React (Vite) and FastAPI, it features dark/light mode, Farsi/English font support, and a clean, responsive UI. Created by KGH & Taha.`,
     aboutList: [
       "Post creation, likes, and views are all interactive and real-time.",
       "Supports both Farsi and English with automatic font switching.",
       "Modern design, animations, and accessibility in mind.",
       "Open source and easy to extend for your school or university.",
     ],
-    createdBy: "Created by KGH & TKZ",
+    createdBy: "Created by KGH & Taha",
     allRights: "All rights reserved. LevelUp",
     theme: "Theme",
     language: "Language",
@@ -50,14 +50,14 @@ const TEXT = {
     addPost: "افزودن پست",
     feed: "فید LevelUp",
     aboutTitle: "درباره LevelUp",
-    aboutContent: `<b>LevelUp</b> یک پلتفرم اجتماعی مدرن برای دانش‌آموزان است که با الهام از توییتر/X ساخته شده و برای اشتراک‌گذاری پست، لایک و تعامل سریع و زیبا طراحی شده است. این پروژه با React (Vite) و FastAPI ساخته شده و دارای حالت تاریک/روشن، پشتیبانی از فارسی/انگلیسی و رابط کاربری تمیز و واکنش‌گرا است. ساخته شده توسط KGH و TKZ.`,
+    aboutContent: `<b>LevelUp</b> یک پلتفرم اجتماعی مدرن برای دانش‌آموزان است که با الهام از توییتر/X ساخته شده و برای اشتراک‌گذاری پست، لایک و تعامل سریع و زیبا طراحی شده است. این پروژه با React (Vite) و FastAPI ساخته شده و دارای حالت تاریک/روشن، پشتیبانی از فارسی/انگلیسی و رابط کاربری تمیز و واکنش‌گرا است. ساخته شده توسط KGH و Taha.`,
     aboutList: [
       "ایجاد پست، لایک و بازدید کاملاً تعاملی و بلادرنگ است.",
       "پشتیبانی از فارسی و انگلیسی با تشخیص خودکار فونت.",
       "طراحی مدرن، انیمیشن و دسترس‌پذیری.",
       "متن‌باز و قابل توسعه برای مدارس و دانشگاه‌ها.",
     ],
-    createdBy: "ساخته شده توسط KGH و TKZ",
+    createdBy: "ساخته شده توسط KGH و Taha",
     allRights: "تمام حقوق محفوظ است. LevelUp",
     theme: "حالت نمایش",
     language: "زبان",
@@ -110,6 +110,17 @@ function PostCard({
     onLike(post.id);
   };
 
+  const handlePostClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking like or delete buttons
+    if (
+      (e.target as HTMLElement).closest(".like-btn") ||
+      (e.target as HTMLElement).closest(".delete-btn")
+    ) {
+      return;
+    }
+    window.location.href = `/${post.id}`;
+  };
+
   useEffect(() => {
     const updateViews = async () => {
       try {
@@ -135,45 +146,49 @@ function PostCard({
   return (
     <li
       className={`post-card ${isFarsi ? "farsi-font" : "latin-font"}`}
-      style={{ direction: isFarsi ? "rtl" : "ltr", textAlign: "center" }}
+      style={{
+        direction: isFarsi ? "rtl" : "ltr",
+        textAlign: isFarsi ? "right" : "left",
+      }}
+      onClick={handlePostClick}
     >
-      <div className="post-card-header">
-        <div className="post-meta">
+      <div className='post-card-header'>
+        <div className='post-meta'>
           <h2>{post.title}</h2>
-          <span className="post-author">@{post.creator}</span>
-          <span className="post-date">
+          <span className='post-author'>{post.creator}</span>
+          <span className='post-date'>
             {new Date(post.created_at).toLocaleDateString()}
           </span>
         </div>
         {isOwner && (
           <button
-            className="delete-btn"
+            className='delete-btn'
             onClick={(e) => {
               e.stopPropagation();
               onDelete(post.id);
             }}
-            title="Delete"
+            title='Delete'
           >
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' />
             </svg>
           </button>
         )}
       </div>
-      <p className="post-content">{post.contains}</p>
-      <div className="post-actions" style={{ direction: "ltr" }}>
+      <p className='post-content'>{post.contains}</p>
+      <div className='post-actions' style={{ direction: "ltr" }}>
         <button
           className={`like-btn ${hasLiked ? "liked" : ""}`}
           onClick={handleLikeClick}
         >
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          <svg viewBox='0 0 24 24' width='24' height='24'>
+            <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
           </svg>
-          <span className="like-count">{post.likes.length}</span>
+          <span className='like-count'>{post.likes.length}</span>
         </button>
-        <div className="view-count">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+        <div className='view-count'>
+          <svg viewBox='0 0 24 24' width='20' height='20'>
+            <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
           </svg>
           <span>{post.views.length}</span>
         </div>
@@ -251,29 +266,53 @@ function Header({
 
   return (
     <header className={`app-header ${isScrolled ? "scrolled" : ""}`}>
-      <div className="logo">LevelUp</div>
-      <nav>
-        <a href="#" onClick={() => setPage("feed")}>
+      <div className='logo'>LevelUp</div>
+
+      <nav className='main-nav'>
+        <a
+          href='/'
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("feed");
+            window.history.pushState({}, "", "/");
+          }}
+        >
           {TEXT[lang].home}
         </a>
-        <a href="#" onClick={() => setPage("about")}>
+        <a
+          href='/about'
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("about");
+            window.history.pushState({}, "", "/about");
+          }}
+        >
           {TEXT[lang].about}
         </a>
-        <a href="#" onClick={() => setPage("settings")}>
+        <a href='#' onClick={() => setPage("settings")}>
           {TEXT[lang].settings}
         </a>
-        <a href="#" onClick={() => setPage("profile")}>
+        <a href='#' onClick={() => setPage("profile")}>
           {lang === "fa" ? "پروفایل" : "Profile"}
         </a>
-        <a href="#rights">{TEXT[lang].rights}</a>
       </nav>
-      <button onClick={() => setShowModal(true)}>{TEXT[lang].addPost}</button>
-      <div className="user-button">
-        <SignedIn>
-          <UserButton
-            appearance={{ elements: { avatarBox: { width: 40, height: 40 } } }}
-          />
-        </SignedIn>
+
+      <div className='header-actions'>
+        <button onClick={() => setShowModal(true)} className='add-post-btn'>
+          <svg viewBox='0 0 24 24' width='24' height='24'>
+            <path d='M12 5v14M5 12h14' />
+          </svg>
+          <span>{TEXT[lang].addPost}</span>
+        </button>
+        <div className='user-button'>
+          <SignedIn>
+            <UserButton
+              appearance={{
+                elements: { avatarBox: { width: 40, height: 40 } },
+              }}
+            />
+          </SignedIn>
+        </div>
       </div>
     </header>
   );
@@ -285,28 +324,85 @@ function App() {
   );
   const [showModal, setShowModal] = useState(false);
   const [newPost, setNewPost] = useState<PostDisponivel | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("sign-in")) {
+    // Wait for initial load
+    Promise.all([
+      // Add any initial loading promises here
+      new Promise((resolve) => setTimeout(resolve, 500)), // Min loading time
+    ]).then(() => {
+      setPageLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    // Handle routing
+    const path = window.location.pathname;
+    if (path === "/") {
       setPage("feed");
-      window.history.replaceState(null, "", window.location.pathname);
+      setSelectedPostId(null);
+    } else if (path === "/about") {
+      setPage("about");
+    } else if (path === "/settings") {
+      setPage("settings");
+    } else if (path === "/profile") {
+      setPage("profile");
+    } else {
+      // Check if it's a post URL
+      const match = path.match(/^\/(\d+)$/);
+      if (match) {
+        setSelectedPostId(match[1]);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsLoading(true);
+      setTimeout(() => setIsLoading(false), 1000);
+    };
+
+    window.addEventListener("popstate", handleRouteChange);
+    return () => window.removeEventListener("popstate", handleRouteChange);
+  }, []);
+
+  const handlePageChange = (
+    newPage: "feed" | "about" | "settings" | "profile"
+  ) => {
+    setPage(newPage);
+    setSelectedPostId(null); // Clear selected post when changing pages
+  };
+
+  if (pageLoading) {
+    return <LoadingBar isLoading={true} />;
+  }
 
   return (
     <ThemeProvider>
       <LangProvider>
-        <div className="app-layout">
-          <Header setPage={setPage} setShowModal={setShowModal} />
-          <MainArea
-            page={page}
-            setShowModal={setShowModal}
-            showModal={showModal}
-            newPost={newPost}
-            setNewPost={setNewPost}
-            setPage={setPage}
-          />
+        <div className='app-layout'>
+          <LoadingBar isLoading={isLoading} />
+          <Header setPage={handlePageChange} setShowModal={setShowModal} />
+          <div className={`page-container ${isLoading ? "loading" : ""}`}>
+            {selectedPostId ? (
+              <PostPage
+                postId={selectedPostId}
+                setSelectedPostId={setSelectedPostId}
+              />
+            ) : (
+              <MainArea
+                page={page}
+                setShowModal={setShowModal}
+                showModal={showModal}
+                newPost={newPost}
+                setNewPost={setNewPost}
+                setPage={handlePageChange}
+              />
+            )}
+          </div>
           <Footer />
         </div>
       </LangProvider>
@@ -358,35 +454,95 @@ function MainArea({
 function ProfilePage() {
   const { user } = useUser();
   const { lang } = useLang();
+  const [activeTab, setActiveTab] = useState<"posts" | "level">("posts");
+
+  useEffect(() => {
+    const tabs = document.querySelectorAll(".profile-tab");
+    const indicator = document.querySelector(".tab-indicator");
+
+    if (tabs.length && indicator) {
+      const activeTab = document.querySelector(
+        ".profile-tab.active"
+      ) as HTMLElement;
+      if (activeTab) {
+        indicator.setAttribute(
+          "style",
+          `
+          width: ${activeTab.offsetWidth}px;
+          left: ${activeTab.offsetLeft}px;
+        `
+        );
+      }
+    }
+  }, [activeTab]);
+
   return (
-    <main className="main-feed">
-      <header className="main-header">
-        <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
+    <main className='main-feed'>
+      <header className='main-header'>
+        <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+          {lang === "fa" ? "پروفایل" : "Profile"}
+        </h1>
       </header>
-      <div className="profile-card">
-        <SignedIn>
-          <div className="profile-picture-container">
-            <UserButton
-              appearance={{
-                elements: { avatarBox: { width: 120, height: 120 } },
-              }}
-            />
+      <div className='profile-container'>
+        <div className='profile-layout'>
+          {/* Left side - User Info */}
+          <div className='profile-info-section'>
+            <div className='profile-picture-container'>
+              <UserButton
+                appearance={{
+                  elements: { avatarBox: { width: 120, height: 120 } },
+                }}
+              />
+            </div>
+            <h2 className='profile-name'>
+              {user?.fullName ||
+                user?.username ||
+                user?.primaryEmailAddress?.emailAddress}
+            </h2>
+            <div className='profile-id'>{user?.id}</div>
+            <SignOutButton>
+              <button className='sign-out-button'>
+                {lang === "fa" ? "خروج" : "Sign Out"}
+              </button>
+            </SignOutButton>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 600, marginTop: 16 }}>
-            {user?.fullName ||
-              user?.username ||
-              user?.primaryEmailAddress?.emailAddress}
+
+          {/* Right side - Content */}
+          <div className='profile-content-section'>
+            <nav className='profile-nav'>
+              <button
+                className={`profile-tab ${
+                  activeTab === "posts" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("posts")}
+              >
+                {lang === "fa" ? "پست‌ها" : "Posts"}
+              </button>
+              <button
+                className={`profile-tab ${
+                  activeTab === "level" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("level")}
+              >
+                {lang === "fa" ? "سطح" : "Level"}
+              </button>
+              <div className='tab-indicator'></div>
+            </nav>
+            <div className='profile-content'>
+              {activeTab === "posts" ? (
+                <div className='profile-posts'>
+                  {/* Posts content */}
+                  Posts content here
+                </div>
+              ) : (
+                <div className='profile-level'>
+                  {/* Level content */}
+                  Level content here
+                </div>
+              )}
+            </div>
           </div>
-          <div style={{ color: "#888", fontSize: 16 }}>{user?.id}</div>
-          <SignOutButton>
-            <button style={{ width: 220, fontSize: 18, marginTop: 32 }}>
-              {lang === "fa" ? "خروج" : "Sign Out"}
-            </button>
-          </SignOutButton>
-        </SignedIn>
-        <SignedOut>
-          <SignInButton forceRedirectUrl="/" />
-        </SignedOut>
+        </div>
       </div>
     </main>
   );
@@ -447,18 +603,18 @@ function CreatePostModal({
   };
 
   return (
-    <div className="popup-backdrop" onClick={onClose}>
+    <div className='popup-backdrop' onClick={onClose}>
       <form
-        className="popup-card create-modal no-scroll"
+        className='popup-card create-modal no-scroll'
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleCreate}
       >
-        <button className="popup-close" onClick={onClose} type="button">
+        <button className='popup-close' onClick={onClose} type='button'>
           ×
         </button>
         <h2>{TEXT[lang].addPostTitle}</h2>
         <input
-          type="text"
+          type='text'
           placeholder={TEXT[lang].postTitle}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -490,10 +646,10 @@ function CreatePostModal({
                 : "Inter, sans-serif",
           }}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? TEXT[lang].posting : TEXT[lang].post}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className='error'>{error}</div>}
       </form>
     </div>
   );
@@ -579,18 +735,18 @@ function MainFeed({
   };
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].feed}</h1>
       </header>
-      {error && <div className="error">{error}</div>}
-      <div className="post-feed-scroll hide-scrollbar">
+      {error && <div className='error'>{error}</div>}
+      <div className='post-feed-scroll hide-scrollbar'>
         {loading ? (
           <div>{TEXT[lang].loading}</div>
         ) : posts.length === 0 ? (
           <div>{TEXT[lang].noPosts}</div>
         ) : (
-          <ul className="post-list">
+          <ul className='post-list'>
             {posts.map((post) => (
               <PostCard
                 key={post.id}
@@ -604,17 +760,17 @@ function MainFeed({
         )}
       </div>
       {selectedPost && (
-        <div className="popup-backdrop" onClick={() => setSelectedPost(null)}>
-          <div className="popup-card" onClick={(e) => e.stopPropagation()}>
+        <div className='popup-backdrop' onClick={() => setSelectedPost(null)}>
+          <div className='popup-card' onClick={(e) => e.stopPropagation()}>
             <button
-              className="popup-close"
+              className='popup-close'
               onClick={() => setSelectedPost(null)}
             >
               ×
             </button>
             <h2>{selectedPost.title}</h2>
             <p>{selectedPost.contains}</p>
-            <div className="post-actions">
+            <div className='post-actions'>
               <button onClick={() => handleLike(selectedPost.id)}>
                 ❤️ {selectedPost.likes.length}
               </button>
@@ -630,11 +786,11 @@ function MainFeed({
 function AboutPage() {
   const { lang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].aboutTitle}</h1>
       </header>
-      <div className="about-content">
+      <div className='about-content'>
         <p dangerouslySetInnerHTML={{ __html: TEXT[lang].aboutContent }} />
         <ul>
           {TEXT[lang].aboutList.map((item, i) => (
@@ -650,14 +806,14 @@ function SettingsPage() {
   const { theme, toggle } = useTheme();
   const { lang, setLang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{lang === "fa" ? "تنظیمات" : "Settings"}</h1>
       </header>
-      <div className="settings-content">
-        <div className="setting-row">
+      <div className='settings-content'>
+        <div className='setting-row'>
           <span>{lang === "fa" ? "حالت نمایش" : "Theme"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={theme === "light" ? "active" : ""}
               onClick={() => theme !== "light" && toggle()}
@@ -672,9 +828,9 @@ function SettingsPage() {
             </button>
           </div>
         </div>
-        <div className="setting-row">
+        <div className='setting-row'>
           <span>{lang === "fa" ? "زبان" : "Language"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={lang === "en" ? "active" : ""}
               onClick={() => lang !== "en" && setLang("en")}
@@ -697,12 +853,125 @@ function SettingsPage() {
 function Footer() {
   const { lang } = useLang();
   return (
-    <footer className="footer">
+    <footer className='footer'>
       <div>{TEXT[lang].createdBy}</div>
-      <div id="rights">
+      <div id='rights'>
         {TEXT[lang].allRights} © {new Date().getFullYear()}
       </div>
     </footer>
+  );
+}
+
+function PostPage({
+  postId,
+  setSelectedPostId,
+}: {
+  postId: string;
+  setSelectedPostId: (id: string | null) => void;
+}) {
+  const { lang } = useLang();
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  const [post, setPost] = useState<PostDisponivel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await fetch(`${API_URL}/posts/${postId}`);
+        if (!res.ok) throw new Error("Failed to fetch post");
+        const data = await res.json();
+        setPost(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [postId]);
+
+  const handleLike = async () => {
+    if (!post) return;
+    try {
+      const token = await getToken({ template: "fullname" });
+      const hasLiked = post.likes.includes(user?.id || "");
+
+      const res = await fetch(`${API_URL}/posts/${post.id}/like`, {
+        method: hasLiked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updated = await res.json();
+      setPost(updated);
+    } catch (err) {
+      console.error("Failed to update like:", err);
+    }
+  };
+
+  if (loading)
+    return <div className='post-page-loading'>{TEXT[lang].loading}</div>;
+  if (error) return <div className='post-page-error'>{error}</div>;
+  if (!post) return <div className='post-page-error'>Post not found</div>;
+
+  const isFarsi = /[\u0600-\u06FF]/.test(post.contains);
+  const hasLiked = post.likes.includes(user?.id || "");
+
+  return (
+    <main className='main-feed'>
+      <header className='main-header'>
+        <button onClick={() => setSelectedPostId(null)} className='back-button'>
+          {lang === "fa" ? "بازگشت به فید" : "Back to Feed"}
+        </button>
+      </header>
+      <div className='post-page-container'>
+        <article
+          className={`post-detail ${isFarsi ? "farsi-font" : "latin-font"}`}
+          style={{ direction: isFarsi ? "rtl" : "ltr" }}
+        >
+          <div className='post-detail-header'>
+            <h1>{post.title}</h1>
+            <div className='post-meta'>
+              <span className='post-author'>@{post.creator}</span>
+              <span className='post-date'>
+                {new Date(post.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+          <p className='post-content'>{post.contains}</p>
+          <div className='post-actions' style={{ direction: "ltr" }}>
+            <button
+              className={`like-btn ${hasLiked ? "liked" : ""}`}
+              onClick={handleLike}
+            >
+              <svg viewBox='0 0 24 24' width='24' height='24'>
+                <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
+              </svg>
+              <span>{post.likes.length}</span>
+            </button>
+            <div className='view-count'>
+              <svg viewBox='0 0 24 24' width='20' height='20'>
+                <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
+              </svg>
+              <span>{post.views.length}</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </main>
+  );
+}
+
+function LoadingBar({ isLoading }: { isLoading: boolean }) {
+  return (
+    <div className={`loading-bar ${isLoading ? "loading" : ""}`}>
+      <div className='loading-progress'></div>
+    </div>
   );
 }
 
