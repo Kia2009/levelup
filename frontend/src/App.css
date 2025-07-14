@@ -74,7 +74,7 @@ body::before {
 
 .app-header {
   display: grid;
-  grid-template-columns: minmax(0, auto) 1fr minmax(0, auto);
+  grid-template-columns: auto 1fr auto; /* Adjusted to center nav */
   align-items: center;
   padding: 12px 24px;
   gap: 24px;
@@ -101,7 +101,7 @@ body::before {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin: 0 20px;
+  margin: 0; /* Adjusted to remove extra spacing */
   transition: transform var(--transition);
 }
 
@@ -111,10 +111,11 @@ body::before {
 
 .main-nav {
   display: flex;
-  justify-content: center;
+  justify-content: center; /* Center the tabs */
   align-items: center;
   gap: clamp(20px, 5vw, 40px);
-  flex-grow: 1;
+  width: 100%; /* Ensure full space usage */
+  /* Removed flex-grow: 1 to avoid stretching */
 }
 
 .header-actions {

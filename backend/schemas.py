@@ -11,6 +11,8 @@ class Comment(BaseModel):
     creator: str
     content: str
     created_at: datetime
+    likes: List[str] = []
+    views: List[str] = []
 
 
 class CommentCreate(BaseModel):

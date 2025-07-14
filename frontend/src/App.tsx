@@ -50,6 +50,8 @@ const TEXT = {
     alertPostLiked: "Post liked!",
     alertPostUnliked: "Post unliked!",
     alertPostDeleted: "Post deleted successfully!",
+    alertCommentLiked: "Comment liked!",
+    alertCommentUnliked: "Comment unliked!",
   },
   fa: {
     home: "خانه",
@@ -90,6 +92,8 @@ const TEXT = {
     alertPostLiked: "پست لایک شد!",
     alertPostUnliked: "لایک پست لغو شد!",
     alertPostDeleted: "پست با موفقیت حذف شد!",
+    alertCommentLiked: "نظر لایک شد!",
+    alertCommentUnliked: "لایک نظر لغو شد!",
   },
 };
 
@@ -113,6 +117,8 @@ interface CommentDisponivel {
   creator: string;
   content: string;
   created_at: string;
+  likes: string[];
+  views: string[];
 }
 
 function PostCard({
@@ -410,7 +416,7 @@ function App() {
     setAlertMessage(message);
     setTimeout(() => {
       setAlertMessage(null);
-    }, 3300); // Matches AlertBar's fade-out timing
+    }, 3300);
   };
 
   useEffect(() => {
@@ -1050,6 +1056,49 @@ function PostPage({
     }
   };
 
+  const handleCommentLike = async (commentId: string) => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      const comment = comments.find((c) => c.id === commentId);
+      const hasLiked = comment?.likes.includes(user?.id || "");
+
+      const res = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}/like`, {
+        method: hasLiked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updated = await res.json();
+      setComments((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      showAlert(hasLiked ? TEXT[lang].alertCommentUnliked : TEXT[lang].alertCommentLiked);
+    } catch (err) {
+      console.error("Failed to update comment like:", err);
+    }
+  };
+
+  const handleCommentView = async (commentId: string) => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      const comment = comments.find((c) => c.id === commentId);
+      if (!comment?.views.includes(user?.id || "")) {
+        const res = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}/view`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to update comment view count");
+        const updated = await res.json();
+        setComments((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      }
+    } catch (err) {
+      console.error("Failed to update comment view count:", err);
+    }
+  };
+
   const handleCommentSubmit = async (content: string) => {
     if (!content.trim()) {
       setError(
@@ -1082,6 +1131,14 @@ function PostPage({
       setCommentLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.id && comments.length > 0) {
+      comments.forEach((comment) => {
+        handleCommentView(comment.id);
+      });
+    }
+  }, [comments, user?.id]);
 
   if (loading)
     return <div className="post-page-loading">{TEXT[lang].loading}</div>;
@@ -1132,6 +1189,7 @@ function PostPage({
           </div>
         </article>
         <section className="comment-section">
+          <h2 className="comments-header">{lang === "fa" ? "نظرات" : "Comments"}</h2>
           {comments.length === 0 ? (
             <div className="no-comments">{TEXT[lang].noComments}</div>
           ) : (
@@ -1151,6 +1209,23 @@ function PostPage({
                     </span>
                   </div>
                   <p className="comment-content">{comment.content}</p>
+                  <div className="post-actions" style={{ direction: "ltr" }}>
+                    <button
+                      className={`like-btn ${comment.likes.includes(user?.id || "") ? "liked" : ""}`}
+                      onClick={() => handleCommentLike(comment.id)}
+                    >
+                      <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      </svg>
+                      <span className="like-count">{comment.likes.length}</span>
+                    </button>
+                    <div className="view-count">
+                      <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                      </svg>
+                      <span>{comment.views.length}</span>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>

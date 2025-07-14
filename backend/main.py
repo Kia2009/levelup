@@ -87,9 +87,11 @@ def get_post_by_id(post_id: int):
         )
     return result.data[0]
 
-@app.post("/posts/{post_id}/like", response_model=Posts)
+@app.post("/posts/{post_id}/like", response_model=Posts, tags=["Posts"], summary="Like a post")
 def like_post(post_id: str, user=Depends(get_current_user)):
-    # Get current likes
+    """
+    Like a specific post.
+    """
     current = supabase.table("posts").select("likes").eq("id", post_id).execute()
     if not current.data:
         raise HTTPException(
@@ -104,9 +106,11 @@ def like_post(post_id: str, user=Depends(get_current_user)):
     )
     return result.data[0]
 
-@app.delete("/posts/{post_id}/like", response_model=Posts)
+@app.delete("/posts/{post_id}/like", response_model=Posts, tags=["Posts"], summary="Unlike a post")
 def delete_like_post(post_id: str, user=Depends(get_current_user)):
-    # Get current likes
+    """
+    Remove a like from a specific post.
+    """
     current = supabase.table("posts").select("likes").eq("id", post_id).execute()
     if not current.data:
         raise HTTPException(
@@ -121,8 +125,11 @@ def delete_like_post(post_id: str, user=Depends(get_current_user)):
     )
     return result.data[0]
 
-@app.post("/posts/{post_id}/view", response_model=Posts)
+@app.post("/posts/{post_id}/view", response_model=Posts, tags=["Posts"], summary="View a post")
 def view_post(post_id: str, user=Depends(get_current_user)):
+    """
+    Record a view for a specific post.
+    """
     current = supabase.table("posts").select("views").eq("id", post_id).execute()
     if not current.data:
         raise HTTPException(
@@ -144,7 +151,9 @@ def view_post(post_id: str, user=Depends(get_current_user)):
     summary="Delete a Post",
 )
 def delete_post(post_id: str, user=Depends(get_current_user)):
-    # Check if post exists and belongs to user
+    """
+    Delete a specific post if the user is authorized.
+    """
     post = (
         supabase.table("posts").select("user_id").eq("id", post_id).single().execute()
     )
@@ -168,7 +177,6 @@ def create_comment(post_id: int, comment_create: CommentCreate, user=Depends(get
     Create a comment for a specific post.
     - **content**: The content of the comment (must be at least 1 character).
     """
-    # Check if post exists
     post = supabase.table("posts").select("id").eq("id", post_id).execute()
     if not post.data:
         raise HTTPException(
@@ -182,6 +190,8 @@ def create_comment(post_id: int, comment_create: CommentCreate, user=Depends(get
             "content": comment_create.content,
             "creator": user.get("name"),
             "user_id": user.get("sub"),
+            "likes": [],
+            "views": [],
         })
         .execute()
     )
@@ -205,3 +215,60 @@ def get_comments(post_id: int):
         .execute()
     )
     return result.data
+
+@app.post("/posts/{post_id}/comments/{comment_id}/like", response_model=Comment, tags=["Comments"], summary="Like a comment")
+def like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
+    """
+    Like a specific comment.
+    """
+    current = supabase.table("comments").select("likes").eq("id", comment_id).eq("post_id", post_id).execute()
+    if not current.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Comment with ID {comment_id} not found",
+        )
+    likes = current.data[0]["likes"] or []
+    if user.get("sub") not in likes:
+        likes = likes + [user.get("sub")]
+    result = (
+        supabase.table("comments").update({"likes": likes}).eq("id", comment_id).execute()
+    )
+    return result.data[0]
+
+@app.delete("/posts/{post_id}/comments/{comment_id}/like", response_model=Comment, tags=["Comments"], summary="Unlike a comment")
+def delete_like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
+    """
+    Remove a like from a specific comment.
+    """
+    current = supabase.table("comments").select("likes").eq("id", comment_id).eq("post_id", post_id).execute()
+    if not current.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Comment with ID {comment_id} not found",
+        )
+    likes = current.data[0]["likes"] or []
+    if user.get("sub") in likes:
+        likes = list(set(likes) - {user.get("sub")})
+    result = (
+        supabase.table("comments").update({"likes": likes}).eq("id", comment_id).execute()
+    )
+    return result.data[0]
+
+@app.post("/posts/{post_id}/comments/{comment_id}/view", response_model=Comment, tags=["Comments"], summary="View a comment")
+def view_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
+    """
+    Record a view for a specific comment.
+    """
+    current = supabase.table("comments").select("views").eq("id", comment_id).eq("post_id", post_id).execute()
+    if not current.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Comment with ID {comment_id} not found",
+        )
+    views = current.data[0]["views"] or []
+    if user.get("sub") not in views:
+        views = views + [user.get("sub")]
+    result = (
+        supabase.table("comments").update({"views": views}).eq("id", comment_id).execute()
+    )
+    return result.data[0]
