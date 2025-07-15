@@ -327,6 +327,29 @@ body::before {
   overflow-x: hidden;
 }
 
+.loading-message,
+.error-message,
+.no-posts-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
+  color: var(--color-text-secondary);
+}
+
+.error-message {
+  color: #ef4444;
+}
+
+.profile-posts .post-list {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px;
+}
+
+.profile-posts {
+  width: 100%;
+}
+
 @media (max-width: 600px) {
   .post-list {
     grid-template-columns: minmax(280px, 1fr);
@@ -1133,4 +1156,33 @@ body::before {
 .profile-container,
 .post-page-container {
   animation: fadeIn 0.3s ease;
+}
+
+/* Add these new styles at the end of your CSS file */
+.page-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.content-area {
+  padding: 100px 0 32px;
+}
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 0 16px;
+  }
+
+  .content-area {
+    padding: 80px 0 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-wrapper {
+    padding: 0 12px;
+  }
 }

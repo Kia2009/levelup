@@ -2,11 +2,11 @@ import os
 from typing import List
 
 from auth import get_current_user
-from dotenv import load_dotenv # type: ignore
-from fastapi import Body, Depends, FastAPI, HTTPException, status # type: ignore
-from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from schemas import PostCreate, Posts, Comment, CommentCreate
-from supabase import Client, create_client # type: ignore
+from dotenv import load_dotenv  # type: ignore
+from fastapi import Body, Depends, FastAPI, HTTPException, status  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from schemas import Comment, CommentCreate, PostCreate, Posts
+from supabase import Client, create_client  # type: ignore
 
 load_dotenv()
 
@@ -29,6 +29,7 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
+
 @app.get("/", tags=["General"], summary="Root endpoint with a welcome message")
 def read_root():
     """
@@ -36,13 +37,17 @@ def read_root():
     """
     return {"message": "Welcome to Post API! Visit /docs for the API documentation."}
 
+
 @app.get("/posts", response_model=List[Posts], tags=["Posts"], summary="Get all Posts")
 def get_all_posts():
     """
     Retrieve a list of all posts currently in the database.
     """
-    result = supabase.table("posts").select("*").order("created_at", desc=True).execute()
+    result = (
+        supabase.table("posts").select("*").order("created_at", desc=True).execute()
+    )
     return result.data
+
 
 @app.post(
     "/posts",
@@ -69,6 +74,7 @@ def create_post(post_create: PostCreate, user=Depends(get_current_user)):
     )
     return result.data[0]
 
+
 @app.get(
     "/posts/{post_id}",
     response_model=Posts,
@@ -87,7 +93,10 @@ def get_post_by_id(post_id: int):
         )
     return result.data[0]
 
-@app.post("/posts/{post_id}/like", response_model=Posts, tags=["Posts"], summary="Like a post")
+
+@app.post(
+    "/posts/{post_id}/like", response_model=Posts, tags=["Posts"], summary="Like a post"
+)
 def like_post(post_id: str, user=Depends(get_current_user)):
     """
     Like a specific post.
@@ -106,7 +115,13 @@ def like_post(post_id: str, user=Depends(get_current_user)):
     )
     return result.data[0]
 
-@app.delete("/posts/{post_id}/like", response_model=Posts, tags=["Posts"], summary="Unlike a post")
+
+@app.delete(
+    "/posts/{post_id}/like",
+    response_model=Posts,
+    tags=["Posts"],
+    summary="Unlike a post",
+)
 def delete_like_post(post_id: str, user=Depends(get_current_user)):
     """
     Remove a like from a specific post.
@@ -125,7 +140,10 @@ def delete_like_post(post_id: str, user=Depends(get_current_user)):
     )
     return result.data[0]
 
-@app.post("/posts/{post_id}/view", response_model=Posts, tags=["Posts"], summary="View a post")
+
+@app.post(
+    "/posts/{post_id}/view", response_model=Posts, tags=["Posts"], summary="View a post"
+)
 def view_post(post_id: str, user=Depends(get_current_user)):
     """
     Record a view for a specific post.
@@ -143,6 +161,7 @@ def view_post(post_id: str, user=Depends(get_current_user)):
         supabase.table("posts").update({"views": views}).eq("id", post_id).execute()
     )
     return result.data[0]
+
 
 @app.delete(
     "/posts/{post_id}",
@@ -165,6 +184,7 @@ def delete_post(post_id: str, user=Depends(get_current_user)):
     supabase.table("posts").delete().eq("id", post_id).execute()
     return
 
+
 @app.post(
     "/posts/{post_id}/comments",
     response_model=Comment,
@@ -172,7 +192,9 @@ def delete_post(post_id: str, user=Depends(get_current_user)):
     tags=["Comments"],
     summary="Create a new comment for a post",
 )
-def create_comment(post_id: int, comment_create: CommentCreate, user=Depends(get_current_user)):
+def create_comment(
+    post_id: int, comment_create: CommentCreate, user=Depends(get_current_user)
+):
     """
     Create a comment for a specific post.
     - **content**: The content of the comment (must be at least 1 character).
@@ -197,6 +219,7 @@ def create_comment(post_id: int, comment_create: CommentCreate, user=Depends(get
     )
     return result.data[0]
 
+
 @app.get(
     "/posts/{post_id}/comments",
     response_model=List[Comment],
@@ -216,12 +239,24 @@ def get_comments(post_id: int):
     )
     return result.data
 
-@app.post("/posts/{post_id}/comments/{comment_id}/like", response_model=Comment, tags=["Comments"], summary="Like a comment")
+
+@app.post(
+    "/posts/{post_id}/comments/{comment_id}/like",
+    response_model=Comment,
+    tags=["Comments"],
+    summary="Like a comment",
+)
 def like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
     """
     Like a specific comment.
     """
-    current = supabase.table("comments").select("likes").eq("id", comment_id).eq("post_id", post_id).execute()
+    current = (
+        supabase.table("comments")
+        .select("likes")
+        .eq("id", comment_id)
+        .eq("post_id", post_id)
+        .execute()
+    )
     if not current.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -231,16 +266,31 @@ def like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
     if user.get("sub") not in likes:
         likes = likes + [user.get("sub")]
     result = (
-        supabase.table("comments").update({"likes": likes}).eq("id", comment_id).execute()
+        supabase.table("comments")
+        .update({"likes": likes})
+        .eq("id", comment_id)
+        .execute()
     )
     return result.data[0]
 
-@app.delete("/posts/{post_id}/comments/{comment_id}/like", response_model=Comment, tags=["Comments"], summary="Unlike a comment")
+
+@app.delete(
+    "/posts/{post_id}/comments/{comment_id}/like",
+    response_model=Comment,
+    tags=["Comments"],
+    summary="Unlike a comment",
+)
 def delete_like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
     """
     Remove a like from a specific comment.
     """
-    current = supabase.table("comments").select("likes").eq("id", comment_id).eq("post_id", post_id).execute()
+    current = (
+        supabase.table("comments")
+        .select("likes")
+        .eq("id", comment_id)
+        .eq("post_id", post_id)
+        .execute()
+    )
     if not current.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -250,16 +300,31 @@ def delete_like_comment(post_id: int, comment_id: int, user=Depends(get_current_
     if user.get("sub") in likes:
         likes = list(set(likes) - {user.get("sub")})
     result = (
-        supabase.table("comments").update({"likes": likes}).eq("id", comment_id).execute()
+        supabase.table("comments")
+        .update({"likes": likes})
+        .eq("id", comment_id)
+        .execute()
     )
     return result.data[0]
 
-@app.post("/posts/{post_id}/comments/{comment_id}/view", response_model=Comment, tags=["Comments"], summary="View a comment")
+
+@app.post(
+    "/posts/{post_id}/comments/{comment_id}/view",
+    response_model=Comment,
+    tags=["Comments"],
+    summary="View a comment",
+)
 def view_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
     """
     Record a view for a specific comment.
     """
-    current = supabase.table("comments").select("views").eq("id", comment_id).eq("post_id", post_id).execute()
+    current = (
+        supabase.table("comments")
+        .select("views")
+        .eq("id", comment_id)
+        .eq("post_id", post_id)
+        .execute()
+    )
     if not current.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -269,6 +334,28 @@ def view_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
     if user.get("sub") not in views:
         views = views + [user.get("sub")]
     result = (
-        supabase.table("comments").update({"views": views}).eq("id", comment_id).execute()
+        supabase.table("comments")
+        .update({"views": views})
+        .eq("id", comment_id)
+        .execute()
     )
     return result.data[0]
+
+
+@app.get(
+    "/myposts", response_model=List[Posts], tags=["Posts"], summary="Get all Posts"
+)
+def get_my_posts(
+    user=Depends(get_current_user),
+):
+    """
+    Retrieve a list of my posts currently in the database.
+    """
+    result = (
+        supabase.table("posts")
+        .select("*")
+        .eq("user_id", user.get("sub"))
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data

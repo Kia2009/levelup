@@ -143,7 +143,9 @@ function PostCard({
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     onLike(post.id);
-    showAlert(hasLiked ? TEXT[lang].alertPostUnliked : TEXT[lang].alertPostLiked);
+    showAlert(
+      hasLiked ? TEXT[lang].alertPostUnliked : TEXT[lang].alertPostLiked
+    );
   };
 
   const handlePostClick = (e: React.MouseEvent) => {
@@ -187,44 +189,44 @@ function PostCard({
       }}
       onClick={handlePostClick}
     >
-      <div className="post-card-header">
-        <div className="post-meta">
+      <div className='post-card-header'>
+        <div className='post-meta'>
           <h2>{post.title}</h2>
-          <span className="post-author">{post.creator}</span>
-          <span className="post-date">
+          <span className='post-author'>{post.creator}</span>
+          <span className='post-date'>
             {new Date(post.created_at).toLocaleDateString()}
           </span>
         </div>
         {isOwner && (
           <button
-            className="delete-btn"
+            className='delete-btn'
             onClick={(e) => {
               e.stopPropagation();
               onDelete(post.id);
               showAlert(TEXT[lang].alertPostDeleted);
             }}
-            title="Delete"
+            title='Delete'
           >
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' />
             </svg>
           </button>
         )}
       </div>
-      <p className="post-content">{post.contains}</p>
-      <div className="post-actions" style={{ direction: "ltr" }}>
+      <p className='post-content'>{post.contains}</p>
+      <div className='post-actions' style={{ direction: "ltr" }}>
         <button
           className={`like-btn ${hasLiked ? "liked" : ""}`}
           onClick={handleLikeClick}
         >
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          <svg viewBox='0 0 24 24' width='24' height='24'>
+            <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
           </svg>
-          <span className="like-count">{post.likes.length}</span>
+          <span className='like-count'>{post.likes.length}</span>
         </button>
-        <div className="view-count">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+        <div className='view-count'>
+          <svg viewBox='0 0 24 24' width='20' height='20'>
+            <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
           </svg>
           <span>{post.views.length}</span>
         </div>
@@ -291,6 +293,7 @@ function Header({
 }) {
   const { lang } = useLang();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [currentPage, setCurrentPage] = useState("feed");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -300,59 +303,91 @@ function Header({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handlePageChange = (
+    page: "feed" | "about" | "settings" | "profile"
+  ) => {
+    setCurrentPage(page);
+    setPage(page);
+  };
+
   return (
     <header className={`app-header ${isScrolled ? "scrolled" : ""}`}>
-      <div className="logo">LevelUp</div>
-      <nav className="main-nav">
+      <div className='logo'>LevelUp</div>
+      <nav className='main-nav'>
         <a
-          href="/"
+          href='/'
+          className={`nav-link ${currentPage === "feed" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            setPage("feed");
-            window.history.pushState({}, "", "/");
+            handlePageChange("feed");
           }}
         >
-          {TEXT[lang].home}
+          {window.innerWidth <= 768 && (
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' />
+              <polyline points='9 22 9 12 15 12 15 22' />
+            </svg>
+          )}
+          <span>{TEXT[lang].home}</span>
         </a>
         <a
-          href="/about"
+          href='/about'
+          className={`nav-link ${currentPage === "about" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            setPage("about");
-            window.history.pushState({}, "", "/about");
+            handlePageChange("about");
           }}
         >
-          {TEXT[lang].about}
+          {window.innerWidth <= 768 && (
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <circle cx='12' cy='12' r='10' />
+              <line x1='12' y1='16' x2='12' y2='12' />
+              <line x1='12' y1='8' x2='12.01' y2='8' />
+            </svg>
+          )}
+          <span>{TEXT[lang].about}</span>
         </a>
         <a
-          href="/settings"
+          href='/settings'
+          className={`nav-link ${currentPage === "settings" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            setPage("settings");
-            window.history.pushState({}, "", "/settings");
+            handlePageChange("settings");
           }}
         >
-          {TEXT[lang].settings}
+          {window.innerWidth <= 768 && (
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <circle cx='12' cy='12' r='3' />
+              <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' />
+            </svg>
+          )}
+          <span>{TEXT[lang].settings}</span>
         </a>
         <a
-          href="/profile"
+          href='/profile'
+          className={`nav-link ${currentPage === "profile" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            setPage("profile");
-            window.history.pushState({}, "", "/profile");
+            handlePageChange("profile");
           }}
         >
-          {lang === "fa" ? "پروفایل" : "Profile"}
+          {window.innerWidth <= 768 && (
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' />
+              <circle cx='12' cy='7' r='4' />
+            </svg>
+          )}
+          <span>{lang === "fa" ? "پروفایل" : "Profile"}</span>
         </a>
       </nav>
-      <div className="header-actions">
-        <button onClick={() => setShowModal(true)} className="add-post-btn">
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path d="M12 5v14M5 12h14" />
+      <div className='header-actions'>
+        <button onClick={() => setShowModal(true)} className='add-post-btn'>
+          <svg viewBox='0 0 24 24' width='24' height='24'>
+            <path d='M12 5v14M5 12h14' />
           </svg>
           <span>{TEXT[lang].addPost}</span>
         </button>
-        <div className="user-button">
+        <div className='user-button'>
           <SignedIn>
             <UserButton
               appearance={{
@@ -393,8 +428,8 @@ function AlertBar({
 
   return (
     <div className={`alert-bar ${isFading ? "fade-out" : ""}`}>
-      <svg viewBox="0 0 24 24" width="20" height="20">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm2-4h-2V7h2v6z" />
+      <svg viewBox='0 0 24 24' width='20' height='20'>
+        <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm2-4h-2V7h2v6z' />
       </svg>
       <span>{message}</span>
     </div>
@@ -420,9 +455,11 @@ function App() {
   };
 
   useEffect(() => {
-    Promise.all([new Promise((resolve) => setTimeout(resolve, 500))]).then(() => {
-      setPageLoading(false);
-    });
+    Promise.all([new Promise((resolve) => setTimeout(resolve, 500))]).then(
+      () => {
+        setPageLoading(false);
+      }
+    );
   }, []);
 
   useEffect(() => {
@@ -468,10 +505,13 @@ function App() {
   return (
     <ThemeProvider>
       <LangProvider>
-        <div className="app-layout">
+        <div className='app-layout'>
           <LoadingBar isLoading={isLoading} />
           {alertMessage && (
-            <AlertBar message={alertMessage} onClose={() => setAlertMessage(null)} />
+            <AlertBar
+              message={alertMessage}
+              onClose={() => setAlertMessage(null)}
+            />
           )}
           <Header setPage={handlePageChange} setShowModal={setShowModal} />
           <div className={`page-container ${isLoading ? "loading" : ""}`}>
@@ -518,30 +558,32 @@ function MainArea({
   showAlert: (message: string) => void;
 }) {
   const { lang } = useLang();
-  if (page === "profile") return <ProfilePage />;
   return (
-    <div className={`main-area${lang === "fa" ? " farsi-font" : ""}`}>
-      {page === "feed" && (
-        <MainFeed
-          showModal={showModal}
-          setShowModal={setShowModal}
-          newPost={newPost}
-          setNewPost={setNewPost}
-          showAlert={showAlert}
-        />
-      )}
-      {page === "about" && <AboutPage />}
-      {page === "settings" && <SettingsPage />}
-      {showModal && (
-        <CreatePostModal
-          onClose={() => setShowModal(false)}
-          onCreated={(post) => {
-            setShowModal(false);
-            setNewPost(post);
-            showAlert(TEXT[lang].alertPostCreated);
-          }}
-        />
-      )}
+    <div className="page-wrapper">
+      <div className="content-area">
+        {page === "profile" && <ProfilePage />}
+        {page === "feed" && (
+          <MainFeed
+            showModal={showModal}
+            setShowModal={setShowModal}
+            newPost={newPost}
+            setNewPost={setNewPost}
+            showAlert={showAlert}
+          />
+        )}
+        {page === "about" && <AboutPage />}
+        {page === "settings" && <SettingsPage />}
+        {showModal && (
+          <CreatePostModal
+            onClose={() => setShowModal(false)}
+            onCreated={(post) => {
+              setShowModal(false);
+              setNewPost(post);
+              showAlert(TEXT[lang].alertPostCreated);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -549,7 +591,73 @@ function MainArea({
 function ProfilePage() {
   const { user } = useUser();
   const { lang } = useLang();
+  const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState<"posts" | "level">("posts");
+  const [userPosts, setUserPosts] = useState<PostDisponivel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchUserPosts = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken({ template: "fullname" });
+      const response = await fetch(`${API_URL}/myposts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      const data = await response.json();
+      setUserPosts(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserPosts();
+  }, []);
+
+  const handleLike = async (id: string) => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      const post = userPosts.find((p) => p.id === id);
+      const hasLiked = post?.likes.includes(user?.id || "");
+
+      const res = await fetch(`${API_URL}/posts/${id}/like`, {
+        method: hasLiked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updated = await res.json();
+      setUserPosts((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p))
+      );
+    } catch (err) {
+      console.error("Failed to update like:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      await fetch(`${API_URL}/posts/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUserPosts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    }
+  };
 
   useEffect(() => {
     const tabs = document.querySelectorAll(".profile-tab");
@@ -572,36 +680,36 @@ function ProfilePage() {
   }, [activeTab]);
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
           {lang === "fa" ? "پروفایل" : "Profile"}
         </h1>
       </header>
-      <div className="profile-container">
-        <div className="profile-layout">
-          <div className="profile-info-section">
-            <div className="profile-picture-container">
+      <div className='profile-container'>
+        <div className='profile-layout'>
+          <div className='profile-info-section'>
+            <div className='profile-picture-container'>
               <UserButton
                 appearance={{
                   elements: { avatarBox: { width: 120, height: 120 } },
                 }}
               />
             </div>
-            <h2 className="profile-name">
+            <h2 className='profile-name'>
               {user?.fullName ||
                 user?.username ||
                 user?.primaryEmailAddress?.emailAddress}
             </h2>
-            <div className="profile-id">{user?.id}</div>
+            <div className='profile-id'>{user?.id}</div>
             <SignOutButton>
-              <button className="sign-out-button">
+              <button className='sign-out-button'>
                 {lang === "fa" ? "خروج" : "Sign Out"}
               </button>
             </SignOutButton>
           </div>
-          <div className="profile-content-section">
-            <nav className="profile-nav">
+          <div className='profile-content-section'>
+            <nav className='profile-nav'>
               <button
                 className={`profile-tab ${
                   activeTab === "posts" ? "active" : ""
@@ -618,13 +726,40 @@ function ProfilePage() {
               >
                 {lang === "fa" ? "سطح" : "Level"}
               </button>
-              <div className="tab-indicator"></div>
+              <div className='tab-indicator'></div>
             </nav>
-            <div className="profile-content">
+            <div className='profile-content'>
               {activeTab === "posts" ? (
-                <div className="profile-posts">Posts content here</div>
+                <div className='profile-posts'>
+                  {loading ? (
+                    <div className='loading-message'>
+                      {lang === "fa" ? "در حال بارگذاری..." : "Loading..."}
+                    </div>
+                  ) : error ? (
+                    <div className='error-message'>{error}</div>
+                  ) : userPosts.length === 0 ? (
+                    <div className='no-posts-message'>
+                      {lang === "fa"
+                        ? "هنوز پستی ندارید"
+                        : "You haven't created any posts yet"}
+                    </div>
+                  ) : (
+                    <ul className='post-list'>
+                      {userPosts.map((post) => (
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          onLike={handleLike}
+                          onDelete={handleDelete}
+                          currentUserId={user?.id || ""}
+                          showAlert={() => {}}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </div>
               ) : (
-                <div className="profile-level">Level content here</div>
+                <div className='profile-level'>Level content here</div>
               )}
             </div>
           </div>
@@ -687,24 +822,26 @@ function CreatePostModal({
   };
 
   return (
-    <div className="popup-backdrop" onClick={onClose}>
+    <div className='popup-backdrop' onClick={onClose}>
       <form
-        className="popup-card create-modal no-scroll"
+        className='popup-card create-modal no-scroll'
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleCreate}
       >
-        <button className="popup-close" onClick={onClose} type="button">
+        <button className='popup-close' onClick={onClose} type='button'>
           ×
         </button>
         <h2>{TEXT[lang].addPostTitle}</h2>
         <input
-          type="text"
+          type='text'
           placeholder={TEXT[lang].postTitle}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
           minLength={3}
-          className={detectFarsi(title) || lang === "fa" ? "farsi-font" : "latin-font"}
+          className={
+            detectFarsi(title) || lang === "fa" ? "farsi-font" : "latin-font"
+          }
           style={{
             fontFamily:
               detectFarsi(title) || lang === "fa"
@@ -718,7 +855,9 @@ function CreatePostModal({
           onChange={(e) => setContains(e.target.value)}
           required
           minLength={3}
-          className={detectFarsi(contains) || lang === "fa" ? "farsi-font" : "latin-font"}
+          className={
+            detectFarsi(contains) || lang === "fa" ? "farsi-font" : "latin-font"
+          }
           style={{
             fontFamily:
               detectFarsi(contains) || lang === "fa"
@@ -726,10 +865,10 @@ function CreatePostModal({
                 : "Inter, sans-serif",
           }}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? TEXT[lang].posting : TEXT[lang].post}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className='error'>{error}</div>}
       </form>
     </div>
   );
@@ -760,13 +899,13 @@ function CommentFormModal({
   };
 
   return (
-    <div className="popup-backdrop" onClick={onClose}>
+    <div className='popup-backdrop' onClick={onClose}>
       <form
-        className="popup-card comment-form-modal"
+        className='popup-card comment-form-modal'
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
       >
-        <button className="popup-close" onClick={onClose} type="button">
+        <button className='popup-close' onClick={onClose} type='button'>
           ×
         </button>
         <h2>{TEXT[lang].addComment}</h2>
@@ -782,10 +921,10 @@ function CommentFormModal({
                 : "Inter, sans-serif",
           }}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? TEXT[lang].commenting : TEXT[lang].post}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className='error'>{error}</div>}
       </form>
     </div>
   );
@@ -873,18 +1012,18 @@ function MainFeed({
   };
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].feed}</h1>
       </header>
-      {error && <div className="error">{error}</div>}
-      <div className="post-feed-scroll hide-scrollbar">
+      {error && <div className='error'>{error}</div>}
+      <div className='post-feed-scroll hide-scrollbar'>
         {loading ? (
           <div>{TEXT[lang].loading}</div>
         ) : posts.length === 0 ? (
           <div>{TEXT[lang].noPosts}</div>
         ) : (
-          <ul className="post-list">
+          <ul className='post-list'>
             {posts.map((post) => (
               <PostCard
                 key={post.id}
@@ -905,11 +1044,11 @@ function MainFeed({
 function AboutPage() {
   const { lang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].aboutTitle}</h1>
       </header>
-      <div className="about-content">
+      <div className='about-content'>
         <p dangerouslySetInnerHTML={{ __html: TEXT[lang].aboutContent }} />
         <ul>
           {TEXT[lang].aboutList.map((item, i) => (
@@ -925,14 +1064,14 @@ function SettingsPage() {
   const { theme, toggle } = useTheme();
   const { lang, setLang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{lang === "fa" ? "تنظیمات" : "Settings"}</h1>
       </header>
-      <div className="settings-content">
-        <div className="setting-row">
+      <div className='settings-content'>
+        <div className='setting-row'>
           <span>{lang === "fa" ? "حالت نمایش" : "Theme"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={theme === "light" ? "active" : ""}
               onClick={() => theme !== "light" && toggle()}
@@ -947,9 +1086,9 @@ function SettingsPage() {
             </button>
           </div>
         </div>
-        <div className="setting-row">
+        <div className='setting-row'>
           <span>{lang === "fa" ? "زبان" : "Language"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={lang === "en" ? "active" : ""}
               onClick={() => lang !== "en" && setLang("en")}
@@ -972,9 +1111,9 @@ function SettingsPage() {
 function Footer() {
   const { lang } = useLang();
   return (
-    <footer className="footer">
+    <footer className='footer'>
       <div>{TEXT[lang].createdBy}</div>
-      <div id="rights">
+      <div id='rights'>
         {TEXT[lang].allRights} © {new Date().getFullYear()}
       </div>
     </footer>
@@ -984,7 +1123,7 @@ function Footer() {
 function LoadingBar({ isLoading }: { isLoading: boolean }) {
   return (
     <div className={`loading-bar ${isLoading ? "loading" : ""}`}>
-      <div className="loading-progress"></div>
+      <div className='loading-progress'></div>
     </div>
   );
 }
@@ -1031,7 +1170,9 @@ function PostPage({
       }
     };
 
-    Promise.all([fetchPost(), fetchComments()]).finally(() => setLoading(false));
+    Promise.all([fetchPost(), fetchComments()]).finally(() =>
+      setLoading(false)
+    );
   }, [postId]);
 
   const handleLike = async () => {
@@ -1050,7 +1191,9 @@ function PostPage({
 
       const updated = await res.json();
       setPost(updated);
-      showAlert(hasLiked ? TEXT[lang].alertPostUnliked : TEXT[lang].alertPostLiked);
+      showAlert(
+        hasLiked ? TEXT[lang].alertPostUnliked : TEXT[lang].alertPostLiked
+      );
     } catch (err) {
       console.error("Failed to update like:", err);
     }
@@ -1062,17 +1205,24 @@ function PostPage({
       const comment = comments.find((c) => c.id === commentId);
       const hasLiked = comment?.likes.includes(user?.id || "");
 
-      const res = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}/like`, {
-        method: hasLiked ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        `${API_URL}/posts/${postId}/comments/${commentId}/like`,
+        {
+          method: hasLiked ? "DELETE" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const updated = await res.json();
-      setComments((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-      showAlert(hasLiked ? TEXT[lang].alertCommentUnliked : TEXT[lang].alertCommentLiked);
+      setComments((prev) =>
+        prev.map((c) => (c.id === updated.id ? updated : c))
+      );
+      showAlert(
+        hasLiked ? TEXT[lang].alertCommentUnliked : TEXT[lang].alertCommentLiked
+      );
     } catch (err) {
       console.error("Failed to update comment like:", err);
     }
@@ -1083,16 +1233,21 @@ function PostPage({
       const token = await getToken({ template: "fullname" });
       const comment = comments.find((c) => c.id === commentId);
       if (!comment?.views.includes(user?.id || "")) {
-        const res = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}/view`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `${API_URL}/posts/${postId}/comments/${commentId}/view`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (!res.ok) throw new Error("Failed to update comment view count");
         const updated = await res.json();
-        setComments((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+        setComments((prev) =>
+          prev.map((c) => (c.id === updated.id ? updated : c))
+        );
       }
     } catch (err) {
       console.error("Failed to update comment view count:", err);
@@ -1102,9 +1257,7 @@ function PostPage({
   const handleCommentSubmit = async (content: string) => {
     if (!content.trim()) {
       setError(
-        lang === "fa"
-          ? "نظر نمی‌تواند خالی باشد."
-          : "Comment cannot be empty."
+        lang === "fa" ? "نظر نمی‌تواند خالی باشد." : "Comment cannot be empty."
       );
       return;
     }
@@ -1141,87 +1294,106 @@ function PostPage({
   }, [comments, user?.id]);
 
   if (loading)
-    return <div className="post-page-loading">{TEXT[lang].loading}</div>;
-  if (error) return <div className="post-page-error">{error}</div>;
-  if (!post) return <div className="post-page-error">Post not found</div>;
+    return <div className='post-page-loading'>{TEXT[lang].loading}</div>;
+  if (error) return <div className='post-page-error'>{error}</div>;
+  if (!post) return <div className='post-page-error'>Post not found</div>;
 
   const isFarsi = detectFarsi(post.contains);
   const hasLiked = post.likes.includes(user?.id || "");
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
-        <button onClick={() => setSelectedPostId(null)} className="back-button">
+    <main className='main-feed'>
+      <header className='main-header'>
+        <button onClick={() => setSelectedPostId(null)} className='back-button'>
           {lang === "fa" ? "بازگشت به فید" : "Back to Feed"}
         </button>
       </header>
-      <div className={`post-page-container ${comments.length > 0 ? "has-comments" : ""}`}>
+      <div
+        className={`post-page-container ${
+          comments.length > 0 ? "has-comments" : ""
+        }`}
+      >
         <article
           className={`post-detail ${isFarsi ? "farsi-font" : "latin-font"}`}
           style={{ direction: isFarsi ? "rtl" : "ltr" }}
         >
-          <div className="post-detail-header">
+          <div className='post-detail-header'>
             <h1>{post.title}</h1>
-            <div className="post-meta">
-              <span className="post-author">@{post.creator}</span>
-              <span className="post-date">
+            <div className='post-meta'>
+              <span className='post-author'>@{post.creator}</span>
+              <span className='post-date'>
                 {new Date(post.created_at).toLocaleDateString()}
               </span>
             </div>
           </div>
-          <p className="post-content">{post.contains}</p>
-          <div className="post-actions" style={{ direction: "ltr" }}>
+          <p
+            className='post-content'
+            style={{
+              direction: isFarsi ? "rtl" : "ltr",
+              textAlign: isFarsi ? "right" : "left",
+            }}
+          >
+            {post.contains}
+          </p>
+          <div className='post-actions' style={{ direction: "ltr" }}>
             <button
               className={`like-btn ${hasLiked ? "liked" : ""}`}
               onClick={handleLike}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              <svg viewBox='0 0 24 24' width='24' height='24'>
+                <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
               </svg>
-              <span className="like-count">{post.likes.length}</span>
+              <span className='like-count'>{post.likes.length}</span>
             </button>
-            <div className="view-count">
-              <svg viewBox="0 0 24 24" width="20" height="20">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+            <div className='view-count'>
+              <svg viewBox='0 0 24 24' width='20' height='20'>
+                <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
               </svg>
               <span>{post.views.length}</span>
             </div>
           </div>
         </article>
-        <section className="comment-section">
-          <h2 className="comments-header">{lang === "fa" ? "نظرات" : "Comments"}</h2>
+        <section className='comment-section'>
+          <h2 className='comments-header'>
+            {lang === "fa" ? "نظرات" : "Comments"}
+          </h2>
           {comments.length === 0 ? (
-            <div className="no-comments">{TEXT[lang].noComments}</div>
+            <div className='no-comments'>{TEXT[lang].noComments}</div>
           ) : (
-            <ul className="comment-list">
+            <ul className='comment-list'>
               {comments.map((comment) => (
                 <li
                   key={comment.id}
                   className={`comment-item ${
                     detectFarsi(comment.content) ? "farsi-font" : "latin-font"
                   }`}
-                  style={{ direction: detectFarsi(comment.content) ? "rtl" : "ltr" }}
+                  style={{
+                    direction: detectFarsi(comment.content) ? "rtl" : "ltr",
+                    textAlign: detectFarsi(comment.content) ? "right" : "left",
+                  }}
                 >
-                  <div className="comment-meta">
-                    <span className="comment-author">{comment.creator}</span>
-                    <span className="comment-date">
+                  <div className='comment-meta'>
+                    <span className='comment-author'>{comment.creator}</span>
+                    <span className='comment-date'>
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="comment-content">{comment.content}</p>
-                  <div className="post-actions" style={{ direction: "ltr" }}>
+                  <p className='comment-content'>{comment.content}</p>
+                  <div className='post-actions' style={{ direction: "ltr" }}>
                     <button
-                      className={`like-btn ${comment.likes.includes(user?.id || "") ? "liked" : ""}`}
+                      className={`like-btn ${
+                        comment.likes.includes(user?.id || "") ? "liked" : ""
+                      }`}
                       onClick={() => handleCommentLike(comment.id)}
                     >
-                      <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      <svg viewBox='0 0 24 24' width='24' height='24'>
+                        <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
                       </svg>
-                      <span className="like-count">{comment.likes.length}</span>
+                      <span className='like-count'>{comment.likes.length}</span>
                     </button>
-                    <div className="view-count">
-                      <svg viewBox="0 0 24 24" width="20" height="20">
-                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                    <div className='view-count'>
+                      <svg viewBox='0 0 24 24' width='20' height='20'>
+                        <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
                       </svg>
                       <span>{comment.views.length}</span>
                     </div>
@@ -1233,11 +1405,11 @@ function PostPage({
         </section>
         <SignedIn>
           <button
-            className="add-comment-btn"
+            className='add-comment-btn'
             onClick={() => setShowCommentModal(true)}
           >
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <path d="M12 5v14M5 12h14" />
+            <svg viewBox='0 0 24 24' width='20' height='20'>
+              <path d='M12 5v14M5 12h14' />
             </svg>
             <span>{TEXT[lang].addComment}</span>
           </button>
