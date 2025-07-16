@@ -9,6 +9,7 @@ import {
   useUser,
   useAuth,
 } from "@clerk/clerk-react";
+import { renderMarkdown } from "./markdown";
 
 const TEXT = {
   en: {
@@ -215,7 +216,7 @@ function PostCard({
           </button>
         )}
       </div>
-      <p className='post-content'>{post.contains}</p>
+      <div className='post-content'>{renderMarkdown(post.contains)}</div>
       <div className='post-actions' style={{ direction: "ltr" }}>
         <button
           className={`like-btn ${hasLiked ? "liked" : ""}`}
@@ -291,7 +292,12 @@ function SideNavigation({ currentPage, setPage, setShowModal }) {
 
   return (
     <nav className='side-navigation'>
-      <div className='nav-logo'>LevelUp</div>
+      <div className='nav-logo'>
+        LevelUp
+        <div className='nav-profile'>
+          <UserButton />
+        </div>
+      </div>
       <div className='nav-links'>
         <a
           href='/'
@@ -353,9 +359,6 @@ function SideNavigation({ currentPage, setPage, setShowModal }) {
           </svg>
           <span>{TEXT[lang].settings}</span>
         </a>
-      </div>
-      <div className='nav-footer'>
-        <UserButton />
       </div>
     </nav>
   );
@@ -552,11 +555,16 @@ function App() {
             setShowModal={setShowModal}
           />
           <BottomNavigation currentPage={page} setPage={handlePageChange} />
-          <button className='fab-button' onClick={() => setShowModal(true)}>
-            <svg viewBox='0 0 24 24'>
-              <path d='M12 5v14M5 12h14' />
-            </svg>
-          </button>
+          {!selectedPostId && (
+            <button className='fab-button' onClick={() => setShowModal(true)}>
+              <div className='fab-icon'>
+                <svg viewBox='0 0 24 24'>
+                  <path d='M12 5v14M5 12h14' />
+                </svg>
+              </div>
+              <span className='fab-text'>Add Post</span>
+            </button>
+          )}
           <LoadingBar isLoading={isLoading} />
           {alertMessage && (
             <AlertBar
@@ -823,6 +831,18 @@ function detectFarsi(text: string) {
   return /[\u0600-\u06FF]/.test(text);
 }
 
+function FormattingToolbar({ onFormat }: { onFormat: (format: string, value?: string) => void }) {
+  return (
+    <div className="formatting-toolbar">
+      <button type="button" className="format-btn" onClick={() => onFormat('bold')}>**B**</button>
+      <button type="button" className="format-btn" onClick={() => onFormat('italic')}>*I*</button>
+      <button type="button" className="format-btn" onClick={() => onFormat('code')}>Code</button>
+      <button type="button" className="format-btn" onClick={() => onFormat('math')}>Math</button>
+      <button type="button" className="format-btn" onClick={() => onFormat('link')}>Link</button>
+    </div>
+  );
+}
+
 function CreatePostModal({
   onClose,
   onCreated,
@@ -836,6 +856,31 @@ function CreatePostModal({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { getToken } = useAuth();
+  const [titleRef, setTitleRef] = useState<HTMLInputElement | null>(null);
+  const [contentRef, setContentRef] = useState<HTMLTextAreaElement | null>(null);
+
+  const handleFormat = (format: string) => {
+    const activeRef = document.activeElement === titleRef ? titleRef : contentRef;
+    if (!activeRef) return;
+    
+    const start = activeRef.selectionStart || 0;
+    const end = activeRef.selectionEnd || 0;
+    const text = activeRef.value;
+    const selectedText = text.substring(start, end);
+    
+    let formattedText = '';
+    switch (format) {
+      case 'bold': formattedText = `**${selectedText || 'bold text'}**`; break;
+      case 'italic': formattedText = `*${selectedText || 'italic text'}*`; break;
+      case 'code': formattedText = `\`${selectedText || 'code'}\``; break;
+      case 'math': formattedText = `$$${selectedText || 'x^2 + y^2 = z^2'}$$`; break;
+      case 'link': formattedText = `[${selectedText || 'link text'}](url)`; break;
+    }
+    
+    const newText = text.substring(0, start) + formattedText + text.substring(end);
+    if (activeRef === titleRef) setTitle(newText);
+    else setContains(newText);
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -882,7 +927,9 @@ function CreatePostModal({
           ×
         </button>
         <h2>{TEXT[lang].addPostTitle}</h2>
+        <FormattingToolbar onFormat={handleFormat} />
         <input
+          ref={setTitleRef}
           type='text'
           placeholder={TEXT[lang].postTitle}
           value={title}
@@ -900,9 +947,22 @@ function CreatePostModal({
           }}
         />
         <textarea
+          ref={setContentRef}
           placeholder={TEXT[lang].postContent}
           value={contains}
           onChange={(e) => setContains(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              const start = e.currentTarget.selectionStart;
+              const end = e.currentTarget.selectionEnd;
+              const newValue = contains.substring(0, start) + '\t' + contains.substring(end);
+              setContains(newValue);
+              setTimeout(() => {
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 1;
+              }, 0);
+            }
+          }}
           required
           minLength={3}
           className={
@@ -937,7 +997,29 @@ function CommentFormModal({
 }) {
   const { lang } = useLang();
   const [commentContent, setCommentContent] = useState("");
+  const [commentRef, setCommentRef] = useState<HTMLTextAreaElement | null>(null);
   const isFarsi = detectFarsi(commentContent);
+  
+  const handleFormat = (format: string) => {
+    if (!commentRef) return;
+    
+    const start = commentRef.selectionStart || 0;
+    const end = commentRef.selectionEnd || 0;
+    const text = commentRef.value;
+    const selectedText = text.substring(start, end);
+    
+    let formattedText = '';
+    switch (format) {
+      case 'bold': formattedText = `**${selectedText || 'bold text'}**`; break;
+      case 'italic': formattedText = `*${selectedText || 'italic text'}*`; break;
+      case 'code': formattedText = `\`${selectedText || 'code'}\``; break;
+      case 'math': formattedText = `$$${selectedText || 'x^2 + y^2 = z^2'}$$`; break;
+      case 'link': formattedText = `[${selectedText || 'link text'}](url)`; break;
+    }
+    
+    const newText = text.substring(0, start) + formattedText + text.substring(end);
+    setCommentContent(newText);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -959,10 +1041,24 @@ function CommentFormModal({
           ×
         </button>
         <h2>{TEXT[lang].addComment}</h2>
+        <FormattingToolbar onFormat={handleFormat} />
         <textarea
+          ref={setCommentRef}
           placeholder={TEXT[lang].commentPlaceholder}
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              const start = e.currentTarget.selectionStart;
+              const end = e.currentTarget.selectionEnd;
+              const newValue = commentContent.substring(0, start) + '\t' + commentContent.substring(end);
+              setCommentContent(newValue);
+              setTimeout(() => {
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 1;
+              }, 0);
+            }
+          }}
           className={isFarsi || lang === "fa" ? "farsi-font" : "latin-font"}
           style={{
             fontFamily:
@@ -1041,6 +1137,7 @@ function MainFeed({
         },
       });
 
+      if (!res.ok) throw new Error("Failed to update like");
       const updated = await res.json();
       setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     } catch (err) {
@@ -1376,15 +1473,15 @@ function PostPage({
               </span>
             </div>
           </div>
-          <p
+          <div
             className='post-content'
             style={{
               direction: isFarsi ? "rtl" : "ltr",
               textAlign: isFarsi ? "right" : "left",
             }}
           >
-            {post.contains}
-          </p>
+            {renderMarkdown(post.contains)}
+          </div>
           <div className='post-actions' style={{ direction: "ltr" }}>
             <button
               className={`like-btn ${hasLiked ? "liked" : ""}`}
@@ -1428,7 +1525,7 @@ function PostPage({
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className='comment-content'>{comment.content}</p>
+                  <div className='comment-content'>{renderMarkdown(comment.content)}</div>
                   <div className='post-actions' style={{ direction: "ltr" }}>
                     <button
                       className={`like-btn ${
@@ -1474,6 +1571,20 @@ function PostPage({
         )}
       </div>
     </main>
+  );
+}
+
+function AlertBar({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className='alert-bar'>
+      <span>{message}</span>
+      <button onClick={onClose}>×</button>
+    </div>
   );
 }
 
