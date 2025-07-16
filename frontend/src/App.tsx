@@ -52,12 +52,14 @@ const TEXT = {
     alertPostDeleted: "Post deleted successfully!",
     alertCommentLiked: "Comment liked!",
     alertCommentUnliked: "Comment unliked!",
+    profile: "Profile",
   },
   fa: {
     home: "خانه",
     about: "درباره",
     rights: "حقوق",
     settings: "تنظیمات",
+    profile: "حساب کاربری",
     addPost: "افزودن پست",
     feed: "فید LevelUp",
     aboutTitle: "درباره LevelUp",
@@ -284,155 +286,193 @@ function useLang() {
   return useContext(LangContext);
 }
 
-function Header({
-  setPage,
-  setShowModal,
-}: {
-  setPage: (p: "feed" | "about" | "settings" | "profile") => void;
-  setShowModal: (b: boolean) => void;
-}) {
+function SideNavigation({ currentPage, setPage, setShowModal }) {
   const { lang } = useLang();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [currentPage, setCurrentPage] = useState("feed");
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const handlePageChange = (
-    page: "feed" | "about" | "settings" | "profile"
-  ) => {
-    setCurrentPage(page);
-    setPage(page);
-  };
 
   return (
-    <header className={`app-header ${isScrolled ? "scrolled" : ""}`}>
-      <div className='logo'>LevelUp</div>
-      <nav className='main-nav'>
+    <nav className='side-navigation'>
+      <div className='nav-logo'>LevelUp</div>
+      <div className='nav-links'>
         <a
           href='/'
           className={`nav-link ${currentPage === "feed" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            handlePageChange("feed");
+            setPage("feed");
           }}
         >
-          {window.innerWidth <= 768 && (
-            <svg viewBox='0 0 24 24' width='24' height='24'>
-              <path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' />
-              <polyline points='9 22 9 12 15 12 15 22' />
-            </svg>
-          )}
+          <svg viewBox='0 0 24 24'>
+            <path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' />
+            <polyline points='9 22 9 12 15 12 15 22' />
+          </svg>
           <span>{TEXT[lang].home}</span>
         </a>
-        <a
-          href='/about'
-          className={`nav-link ${currentPage === "about" ? "active" : ""}`}
-          onClick={(e) => {
-            e.preventDefault();
-            handlePageChange("about");
-          }}
-        >
-          {window.innerWidth <= 768 && (
-            <svg viewBox='0 0 24 24' width='24' height='24'>
-              <circle cx='12' cy='12' r='10' />
-              <line x1='12' y1='16' x2='12' y2='12' />
-              <line x1='12' y1='8' x2='12.01' y2='8' />
-            </svg>
-          )}
-          <span>{TEXT[lang].about}</span>
-        </a>
-        <a
-          href='/settings'
-          className={`nav-link ${currentPage === "settings" ? "active" : ""}`}
-          onClick={(e) => {
-            e.preventDefault();
-            handlePageChange("settings");
-          }}
-        >
-          {window.innerWidth <= 768 && (
-            <svg viewBox='0 0 24 24' width='24' height='24'>
-              <circle cx='12' cy='12' r='3' />
-              <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' />
-            </svg>
-          )}
-          <span>{TEXT[lang].settings}</span>
-        </a>
+
         <a
           href='/profile'
           className={`nav-link ${currentPage === "profile" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            handlePageChange("profile");
+            setPage("profile");
           }}
         >
-          {window.innerWidth <= 768 && (
-            <svg viewBox='0 0 24 24' width='24' height='24'>
-              <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' />
-              <circle cx='12' cy='7' r='4' />
-            </svg>
-          )}
-          <span>{lang === "fa" ? "پروفایل" : "Profile"}</span>
-        </a>
-      </nav>
-      <div className='header-actions'>
-        <button onClick={() => setShowModal(true)} className='add-post-btn'>
-          <svg viewBox='0 0 24 24' width='24' height='24'>
-            <path d='M12 5v14M5 12h14' />
+          <svg viewBox='0 0 24 24'>
+            <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' />
+            <circle cx='12' cy='7' r='4' />
           </svg>
-          <span>{TEXT[lang].addPost}</span>
-        </button>
-        <div className='user-button'>
-          <SignedIn>
-            <UserButton
-              appearance={{
-                elements: { avatarBox: { width: 40, height: 40 } },
-              }}
-            />
-          </SignedIn>
-        </div>
+          <span>{TEXT[lang].profile}</span>
+        </a>
+
+        <a
+          href='/about'
+          className={`nav-link ${currentPage === "about" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("about");
+          }}
+        >
+          <svg viewBox='0 0 24 24'>
+            <circle cx='12' cy='12' r='10' />
+            <line x1='12' y1='16' x2='12' y2='12' />
+            <line x1='12' y1='8' x2='12.01' y2='8' />
+          </svg>
+          <span>{TEXT[lang].about}</span>
+        </a>
+
+        <a
+          href='/settings'
+          className={`nav-link ${currentPage === "settings" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("settings");
+          }}
+        >
+          <svg viewBox='0 0 24 24'>
+            <circle cx='12' cy='12' r='3' />
+            <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' />
+          </svg>
+          <span>{TEXT[lang].settings}</span>
+        </a>
       </div>
-    </header>
+      <div className='nav-footer'>
+        <UserButton />
+      </div>
+    </nav>
   );
 }
 
-function AlertBar({
-  message,
-  onClose,
-}: {
-  message: string;
-  onClose: () => void;
-}) {
-  const [isFading, setIsFading] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsFading(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (isFading) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isFading, onClose]);
+function BottomNavigation({ currentPage, setPage }) {
+  const { lang } = useLang();
+  const { user } = useUser();
 
   return (
-    <div className={`alert-bar ${isFading ? "fade-out" : ""}`}>
-      <svg viewBox='0 0 24 24' width='20' height='20'>
-        <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm2-4h-2V7h2v6z' />
-      </svg>
-      <span>{message}</span>
-    </div>
+    <nav className='bottom-navigation'>
+      <div className='bottom-nav-links'>
+        <a
+          href='/'
+          className={`bottom-nav-link ${
+            currentPage === "feed" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("feed");
+          }}
+        >
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+            />
+          </svg>
+          <span>{TEXT[lang].home}</span>
+        </a>
+
+        <a
+          href='/profile'
+          className={`bottom-nav-link profile-link ${
+            currentPage === "profile" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("profile");
+          }}
+        >
+          {user?.imageUrl ? (
+            <div className='profile-mini'>
+              <img src={user.imageUrl} alt={user.fullName || "Profile"} />
+            </div>
+          ) : (
+            <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+              />
+            </svg>
+          )}
+          <span>{TEXT[lang].profile}</span>
+        </a>
+
+        <a
+          href='/about'
+          className={`bottom-nav-link ${
+            currentPage === "about" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("about");
+          }}
+        >
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+            />
+          </svg>
+          <span>{TEXT[lang].about}</span>
+        </a>
+
+        <a
+          href='/settings'
+          className={`bottom-nav-link ${
+            currentPage === "settings" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("settings");
+          }}
+        >
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
+            />
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+            />
+          </svg>
+          <span>{TEXT[lang].settings}</span>
+        </a>
+      </div>
+    </nav>
+  );
+}
+
+function MainHeader({ page, lang }) {
+  return (
+    <header className='main-header'>
+      <h1>
+        {page === "feed" && (lang === "fa" ? "فید لول‌آپ" : "LevelUp Feed")}
+        {page === "profile" && (lang === "fa" ? "پروفایل" : "Profile")}
+        {page === "about" && (lang === "fa" ? "درباره" : "About")}
+        {page === "settings" && (lang === "fa" ? "تنظیمات" : "Settings")}
+      </h1>
+    </header>
   );
 }
 
@@ -506,6 +546,17 @@ function App() {
     <ThemeProvider>
       <LangProvider>
         <div className='app-layout'>
+          <SideNavigation
+            currentPage={page}
+            setPage={handlePageChange}
+            setShowModal={setShowModal}
+          />
+          <BottomNavigation currentPage={page} setPage={handlePageChange} />
+          <button className='fab-button' onClick={() => setShowModal(true)}>
+            <svg viewBox='0 0 24 24'>
+              <path d='M12 5v14M5 12h14' />
+            </svg>
+          </button>
           <LoadingBar isLoading={isLoading} />
           {alertMessage && (
             <AlertBar
@@ -513,7 +564,6 @@ function App() {
               onClose={() => setAlertMessage(null)}
             />
           )}
-          <Header setPage={handlePageChange} setShowModal={setShowModal} />
           <div className={`page-container ${isLoading ? "loading" : ""}`}>
             {selectedPostId ? (
               <PostPage
@@ -559,8 +609,8 @@ function MainArea({
 }) {
   const { lang } = useLang();
   return (
-    <div className="page-wrapper">
-      <div className="content-area">
+    <div className='page-wrapper'>
+      <div className='content-area'>
         {page === "profile" && <ProfilePage />}
         {page === "feed" && (
           <MainFeed
