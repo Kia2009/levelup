@@ -831,14 +831,48 @@ function detectFarsi(text: string) {
   return /[\u0600-\u06FF]/.test(text);
 }
 
-function FormattingToolbar({ onFormat }: { onFormat: (format: string, value?: string) => void }) {
+function FormattingToolbar({
+  onFormat,
+}: {
+  onFormat: (format: string, value?: string) => void;
+}) {
   return (
-    <div className="formatting-toolbar">
-      <button type="button" className="format-btn" onClick={() => onFormat('bold')}>**B**</button>
-      <button type="button" className="format-btn" onClick={() => onFormat('italic')}>*I*</button>
-      <button type="button" className="format-btn" onClick={() => onFormat('code')}>Code</button>
-      <button type="button" className="format-btn" onClick={() => onFormat('math')}>Math</button>
-      <button type="button" className="format-btn" onClick={() => onFormat('link')}>Link</button>
+    <div className='formatting-toolbar'>
+      <button
+        type='button'
+        className='format-btn'
+        onClick={() => onFormat("bold")}
+      >
+        Bold
+      </button>
+      <button
+        type='button'
+        className='format-btn'
+        onClick={() => onFormat("italic")}
+      >
+        Italic
+      </button>
+      <button
+        type='button'
+        className='format-btn'
+        onClick={() => onFormat("code")}
+      >
+        Code
+      </button>
+      <button
+        type='button'
+        className='format-btn'
+        onClick={() => onFormat("math")}
+      >
+        Math
+      </button>
+      <button
+        type='button'
+        className='format-btn'
+        onClick={() => onFormat("link")}
+      >
+        Link
+      </button>
     </div>
   );
 }
@@ -857,27 +891,41 @@ function CreatePostModal({
   const [loading, setLoading] = useState(false);
   const { getToken } = useAuth();
   const [titleRef, setTitleRef] = useState<HTMLInputElement | null>(null);
-  const [contentRef, setContentRef] = useState<HTMLTextAreaElement | null>(null);
+  const [contentRef, setContentRef] = useState<HTMLTextAreaElement | null>(
+    null
+  );
 
   const handleFormat = (format: string) => {
-    const activeRef = document.activeElement === titleRef ? titleRef : contentRef;
+    const activeRef =
+      document.activeElement === titleRef ? titleRef : contentRef;
     if (!activeRef) return;
-    
+
     const start = activeRef.selectionStart || 0;
     const end = activeRef.selectionEnd || 0;
     const text = activeRef.value;
     const selectedText = text.substring(start, end);
-    
-    let formattedText = '';
+
+    let formattedText = "";
     switch (format) {
-      case 'bold': formattedText = `**${selectedText || 'bold text'}**`; break;
-      case 'italic': formattedText = `*${selectedText || 'italic text'}*`; break;
-      case 'code': formattedText = `\`${selectedText || 'code'}\``; break;
-      case 'math': formattedText = `$$${selectedText || 'x^2 + y^2 = z^2'}$$`; break;
-      case 'link': formattedText = `[${selectedText || 'link text'}](url)`; break;
+      case "bold":
+        formattedText = `**${selectedText || "bold text"}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText || "italic text"}*`;
+        break;
+      case "code":
+        formattedText = `\`${selectedText || "code"}\``;
+        break;
+      case "math":
+        formattedText = `$$${selectedText || "x^2 + y^2 = z^2"}$$`;
+        break;
+      case "link":
+        formattedText = `[${selectedText || "link text"}](url)`;
+        break;
     }
-    
-    const newText = text.substring(0, start) + formattedText + text.substring(end);
+
+    const newText =
+      text.substring(0, start) + formattedText + text.substring(end);
     if (activeRef === titleRef) setTitle(newText);
     else setContains(newText);
   };
@@ -952,14 +1000,16 @@ function CreatePostModal({
           value={contains}
           onChange={(e) => setContains(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Tab') {
+            if (e.key === "Tab") {
               e.preventDefault();
               const start = e.currentTarget.selectionStart;
               const end = e.currentTarget.selectionEnd;
-              const newValue = contains.substring(0, start) + '\t' + contains.substring(end);
+              const newValue =
+                contains.substring(0, start) + "\t" + contains.substring(end);
               setContains(newValue);
               setTimeout(() => {
-                e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 1;
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd =
+                  start + 1;
               }, 0);
             }
           }}
@@ -997,27 +1047,40 @@ function CommentFormModal({
 }) {
   const { lang } = useLang();
   const [commentContent, setCommentContent] = useState("");
-  const [commentRef, setCommentRef] = useState<HTMLTextAreaElement | null>(null);
+  const [commentRef, setCommentRef] = useState<HTMLTextAreaElement | null>(
+    null
+  );
   const isFarsi = detectFarsi(commentContent);
-  
+
   const handleFormat = (format: string) => {
     if (!commentRef) return;
-    
+
     const start = commentRef.selectionStart || 0;
     const end = commentRef.selectionEnd || 0;
     const text = commentRef.value;
     const selectedText = text.substring(start, end);
-    
-    let formattedText = '';
+
+    let formattedText = "";
     switch (format) {
-      case 'bold': formattedText = `**${selectedText || 'bold text'}**`; break;
-      case 'italic': formattedText = `*${selectedText || 'italic text'}*`; break;
-      case 'code': formattedText = `\`${selectedText || 'code'}\``; break;
-      case 'math': formattedText = `$$${selectedText || 'x^2 + y^2 = z^2'}$$`; break;
-      case 'link': formattedText = `[${selectedText || 'link text'}](url)`; break;
+      case "bold":
+        formattedText = `**${selectedText || "bold text"}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText || "italic text"}*`;
+        break;
+      case "code":
+        formattedText = `\`${selectedText || "code"}\``;
+        break;
+      case "math":
+        formattedText = `$$${selectedText || "x^2 + y^2 = z^2"}$$`;
+        break;
+      case "link":
+        formattedText = `[${selectedText || "link text"}](url)`;
+        break;
     }
-    
-    const newText = text.substring(0, start) + formattedText + text.substring(end);
+
+    const newText =
+      text.substring(0, start) + formattedText + text.substring(end);
     setCommentContent(newText);
   };
 
@@ -1048,14 +1111,18 @@ function CommentFormModal({
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Tab') {
+            if (e.key === "Tab") {
               e.preventDefault();
               const start = e.currentTarget.selectionStart;
               const end = e.currentTarget.selectionEnd;
-              const newValue = commentContent.substring(0, start) + '\t' + commentContent.substring(end);
+              const newValue =
+                commentContent.substring(0, start) +
+                "\t" +
+                commentContent.substring(end);
               setCommentContent(newValue);
               setTimeout(() => {
-                e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 1;
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd =
+                  start + 1;
               }, 0);
             }
           }}
@@ -1213,7 +1280,9 @@ function SettingsPage() {
   return (
     <main className='main-feed'>
       <header className='main-header'>
-        <h1>{lang === "fa" ? "تنظیمات" : "Settings"}</h1>
+        <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+          {lang === "fa" ? "تنظیمات" : "Settings"}
+        </h1>
       </header>
       <div className='settings-content'>
         <div className='setting-row'>
@@ -1525,7 +1594,9 @@ function PostPage({
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className='comment-content'>{renderMarkdown(comment.content)}</div>
+                  <div className='comment-content'>
+                    {renderMarkdown(comment.content)}
+                  </div>
                   <div className='post-actions' style={{ direction: "ltr" }}>
                     <button
                       className={`like-btn ${
@@ -1574,7 +1645,13 @@ function PostPage({
   );
 }
 
-function AlertBar({ message, onClose }: { message: string; onClose: () => void }) {
+function AlertBar({
+  message,
+  onClose,
+}: {
+  message: string;
+  onClose: () => void;
+}) {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
