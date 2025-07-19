@@ -2,8 +2,6 @@ import React, { useEffect, useState, createContext, useContext } from "react";
 import "./App.css";
 import {
   SignedIn,
-  SignedOut,
-  SignInButton,
   UserButton,
   SignOutButton,
   useUser,
@@ -287,8 +285,46 @@ function useLang() {
   return useContext(LangContext);
 }
 
-function SideNavigation({ currentPage, setPage, setShowModal }) {
+function CoinCounter({ coins }: { coins: number }) {
+  return (
+    <div className='coin-counter'>
+      <div className='coin-icon'>
+        <svg viewBox='0 0 24 24'>
+          <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z' />
+        </svg>
+        <div className='coin-shine'></div>
+      </div>
+      <span>{coins}</span>
+    </div>
+  );
+}
+
+function SideNavigation({ currentPage, setPage }) {
   const { lang } = useLang();
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const [coins, setCoins] = useState(0);
+
+  useEffect(() => {
+    const fetchUserCoins = async () => {
+      if (user?.id) {
+        try {
+          const token = await getToken({ template: "fullname" });
+          const response = await fetch(`${API_URL}/users/${user.id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          setCoins(data.coins || 0);
+        } catch (error) {
+          console.error("Failed to fetch user coins:", error);
+        }
+      }
+    };
+
+    fetchUserCoins();
+  }, [user?.id]);
 
   return (
     <nav className='side-navigation'>
@@ -298,6 +334,7 @@ function SideNavigation({ currentPage, setPage, setShowModal }) {
           <UserButton />
         </div>
       </div>
+      <CoinCounter coins={coins} />
       <div className='nav-links'>
         <a
           href='/'
@@ -367,9 +404,41 @@ function SideNavigation({ currentPage, setPage, setShowModal }) {
 function BottomNavigation({ currentPage, setPage }) {
   const { lang } = useLang();
   const { user } = useUser();
+  const { getToken } = useAuth();
+  const [coins, setCoins] = useState(0);
+
+  useEffect(() => {
+    const fetchUserCoins = async () => {
+      if (user?.id) {
+        try {
+          const token = await getToken({ template: "fullname" });
+          const response = await fetch(`${API_URL}/users/${user.id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          setCoins(data.coins || 0);
+        } catch (error) {
+          console.error("Failed to fetch user coins:", error);
+        }
+      }
+    };
+
+    fetchUserCoins();
+  }, [user?.id]);
 
   return (
     <nav className='bottom-navigation'>
+      <div className='mobile-coin-counter'>
+        <div className='coin-icon'>
+          <svg viewBox='0 0 24 24'>
+            <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z' />
+          </svg>
+          <div className='coin-shine'></div>
+        </div>
+        <span>{coins}</span>
+      </div>
       <div className='bottom-nav-links'>
         <a
           href='/'
@@ -466,19 +535,6 @@ function BottomNavigation({ currentPage, setPage }) {
   );
 }
 
-function MainHeader({ page, lang }) {
-  return (
-    <header className='main-header'>
-      <h1>
-        {page === "feed" && (lang === "fa" ? "فید لول‌آپ" : "LevelUp Feed")}
-        {page === "profile" && (lang === "fa" ? "پروفایل" : "Profile")}
-        {page === "about" && (lang === "fa" ? "درباره" : "About")}
-        {page === "settings" && (lang === "fa" ? "تنظیمات" : "Settings")}
-      </h1>
-    </header>
-  );
-}
-
 function App() {
   const [page, setPage] = useState<"feed" | "about" | "settings" | "profile">(
     "feed"
@@ -489,6 +545,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  const { user } = useUser();
+  const { getToken } = useAuth();
 
   const showAlert = (message: string) => {
     setAlertMessage(message);
@@ -540,6 +599,34 @@ function App() {
     setPage(newPage);
     setSelectedPostId(null);
   };
+
+  const addNewUser = async () => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      const response = await fetch(`${API_URL}/newuser`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create user");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      addNewUser();
+    }
+  }, [user]);
 
   if (pageLoading) {
     return <LoadingBar isLoading={true} />;
@@ -604,7 +691,6 @@ function MainArea({
   showModal,
   newPost,
   setNewPost,
-  setPage,
   showAlert,
 }: {
   page: "feed" | "about" | "settings" | "profile";
@@ -1144,8 +1230,6 @@ function CommentFormModal({
 }
 
 function MainFeed({
-  showModal,
-  setShowModal,
   newPost,
   setNewPost,
   showAlert,

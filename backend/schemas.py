@@ -1,7 +1,12 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
-from pydantic import BaseModel, Field # type: ignore
+from pydantic import BaseModel, Field  # type: ignore
+
+
+class User(BaseModel):
+    user_id: str
+    coins: int = 0
 
 
 class Comment(BaseModel):
@@ -16,8 +21,7 @@ class Comment(BaseModel):
 
 
 class CommentCreate(BaseModel):
-    content: str = Field(..., min_length=1,
-                         description="Content of the comment")
+    content: str = Field(..., min_length=1, description="Content of the comment")
 
 
 class Posts(BaseModel):
@@ -33,5 +37,6 @@ class Posts(BaseModel):
 
 class PostCreate(BaseModel):
     title: str = Field(..., min_length=3, description="title of the post")
-    contains: str = Field(..., min_length=3,
-                          description="post that user wants to share.")
+    contains: str = Field(
+        ..., min_length=3, description="post that user wants to share."
+    )

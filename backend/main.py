@@ -5,7 +5,7 @@ from auth import get_current_user
 from dotenv import load_dotenv  # type: ignore
 from fastapi import Body, Depends, FastAPI, HTTPException, status  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
-from schemas import Comment, CommentCreate, PostCreate, Posts
+from schemas import Comment, CommentCreate, PostCreate, Posts, User
 from supabase import Client, create_client  # type: ignore
 
 load_dotenv()
@@ -108,8 +108,22 @@ def like_post(post_id: str, user=Depends(get_current_user)):
             detail=f"Post with ID {post_id} not found",
         )
     likes = current.data[0]["likes"] or []
+    like_count = len(likes)
     if user.get("sub") not in likes:
         likes = likes + [user.get("sub")]
+    if len(likes) != like_count:
+        creator_id = current.data[0]["user_id"]
+        creator = (
+            supabase.table("users").select("coins").eq("user_id", creator_id).execute()
+        )
+
+        if creator.data:
+            current_coins = creator.data[0]["coins"]
+            # Update creator's coins
+            supabase.table("users").update({"coins": current_coins + 1}).eq(
+                "user_id", creator_id
+            ).execute()
+
     result = (
         supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
     )
@@ -133,8 +147,22 @@ def delete_like_post(post_id: str, user=Depends(get_current_user)):
             detail=f"Post with ID {post_id} not found",
         )
     likes = current.data[0]["likes"] or []
+    like_count = len(likes)
     if user.get("sub") in likes:
         likes = list(set(likes) - {user.get("sub")})
+    if len(likes) != like_count:
+        creator_id = current.data[0]["user_id"]
+        creator = (
+            supabase.table("users").select("coins").eq("user_id", creator_id).execute()
+        )
+
+        if creator.data:
+            current_coins = creator.data[0]["coins"]
+            # Update creator's coins
+            supabase.table("users").update({"coins": current_coins - 1}).eq(
+                "user_id", creator_id
+            ).execute()
+
     result = (
         supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
     )
@@ -263,8 +291,22 @@ def like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
             detail=f"Comment with ID {comment_id} not found",
         )
     likes = current.data[0]["likes"] or []
+    like_count = len(likes)
     if user.get("sub") not in likes:
         likes = likes + [user.get("sub")]
+    if len(likes) != like_count:
+        creator_id = current.data[0]["user_id"]
+        creator = (
+            supabase.table("users").select("coins").eq("user_id", creator_id).execute()
+        )
+
+        if creator.data:
+            current_coins = creator.data[0]["coins"]
+            # Update creator's coins
+            supabase.table("users").update({"coins": current_coins + 1}).eq(
+                "user_id", creator_id
+            ).execute()
+
     result = (
         supabase.table("comments")
         .update({"likes": likes})
@@ -297,8 +339,22 @@ def delete_like_comment(post_id: int, comment_id: int, user=Depends(get_current_
             detail=f"Comment with ID {comment_id} not found",
         )
     likes = current.data[0]["likes"] or []
+    like_count = len(likes)
     if user.get("sub") in likes:
         likes = list(set(likes) - {user.get("sub")})
+    if len(likes) != like_count:
+        creator_id = current.data[0]["user_id"]
+        creator = (
+            supabase.table("users").select("coins").eq("user_id", creator_id).execute()
+        )
+
+        if creator.data:
+            current_coins = creator.data[0]["coins"]
+            # Update creator's coins
+            supabase.table("users").update({"coins": current_coins - 1}).eq(
+                "user_id", creator_id
+            ).execute()
+
     result = (
         supabase.table("comments")
         .update({"likes": likes})
@@ -359,3 +415,34 @@ def get_my_posts(
         .execute()
     )
     return result.data
+
+
+@app.post("/newuser", response_model=User, tags=["User"], summary="Add a new User")
+def new_user(user=Depends(get_current_user)):
+    """
+    Add a new user to the database when they create an account.
+    - user_id: The unique identifier from the authentication provider
+    - coins: Initial coin balance (defaults to 0)
+    """
+    try:
+        # Check if user already exists
+        existing = (
+            supabase.table("users").select("*").eq("user_id", user.get("sub")).execute()
+        )
+
+        if existing.data:
+            return existing.data[0]
+
+        # Create new user if doesn't exist
+        result = (
+            supabase.table("users")
+            .insert({"user_id": user.get("sub"), "coins": 0})
+            .execute()
+        )
+        return result.data[0]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create user: {str(e)}",
+        )
