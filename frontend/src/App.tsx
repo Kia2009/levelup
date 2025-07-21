@@ -6,6 +6,7 @@ import {
   SignOutButton,
   useUser,
   useAuth,
+  SignInButton,
 } from "@clerk/clerk-react";
 import { renderMarkdown } from "./markdown";
 
@@ -132,14 +133,14 @@ function PostCard({
   post: PostDisponivel;
   onLike: (id: string) => void;
   onDelete: (id: string) => void;
-  currentUserId: string;
+  currentUserId?: string;
   showAlert: (message: string) => void;
 }) {
   const { lang } = useLang();
   const isFarsi = /[\u0600-\u06FF]/.test(post.contains);
-  const isOwner = post.user_id === currentUserId;
+  const isOwner = currentUserId ? post.user_id === currentUserId : false;
+  const hasLiked = currentUserId ? post.likes.includes(currentUserId) : false;
   const { getToken } = useAuth();
-  const hasLiked = post.likes.includes(currentUserId);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -285,46 +286,134 @@ function useLang() {
   return useContext(LangContext);
 }
 
-function CoinCounter({ coins }: { coins: number }) {
+const CoinIcon = () => (
+  <svg viewBox='0 0 24 24' width='24' height='24' className='coin-icon'>
+    <defs>
+      <linearGradient id='goldGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
+        <stop offset='0%' style={{ stopColor: "#FFD700", stopOpacity: 1 }} />
+        <stop offset='50%' style={{ stopColor: "#FFC107", stopOpacity: 1 }} />
+        <stop offset='100%' style={{ stopColor: "#DAA520", stopOpacity: 1 }} />
+      </linearGradient>
+      <radialGradient id='shineGradient' cx='25%' cy='25%' r='50%'>
+        <stop offset='0%' style={{ stopColor: "#FFFFFF", stopOpacity: 0.7 }} />
+        <stop offset='100%' style={{ stopColor: "#FFD700", stopOpacity: 0 }} />
+      </radialGradient>
+      <filter id='coinShadow'>
+        <feDropShadow
+          dx='0.5'
+          dy='0.5'
+          stdDeviation='1'
+          floodColor='#000'
+          floodOpacity='0.3'
+        />
+      </filter>
+      <filter id='emboss'>
+        <feGaussianBlur in='SourceAlpha' stdDeviation='0.5' />
+        <feSpecularLighting
+          result='spec'
+          specularConstant='1'
+          specularExponent='20'
+          lightingColor='#FFFFFF'
+        >
+          <fePointLight x='8' y='8' z='10' />
+        </feSpecularLighting>
+        <feComposite in='spec' in2='SourceAlpha' operator='in' />
+        <feComposite in='SourceGraphic' />
+      </filter>
+    </defs>
+    <circle
+      cx='12'
+      cy='12'
+      r='11'
+      fill='url(#goldGradient)'
+      stroke='#B8860B'
+      strokeWidth='1.5'
+      filter='url(#coinShadow)'
+    />
+    <circle
+      cx='12'
+      cy='12'
+      r='9.5'
+      fill='none'
+      stroke='#C68E17'
+      strokeWidth='1'
+      filter='url(#emboss)'
+    />
+    <circle cx='12' cy='12' r='8' fill='url(#shineGradient)' />
+    <text
+      x='12'
+      y='15'
+      textAnchor='middle'
+      fontSize='10'
+      fill='#8B6508'
+      fontWeight='bold'
+    >
+      IQ
+    </text>
+  </svg>
+);
+
+function CoinCounter({
+  coins,
+  isLoading,
+  lang,
+}: {
+  coins: number | null;
+  isLoading: boolean;
+  lang: "en" | "fa";
+}) {
   return (
     <div className='coin-counter'>
-      <div className='coin-icon'>
-        <svg viewBox='0 0 24 24'>
-          <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z' />
-        </svg>
-        <div className='coin-shine'></div>
-      </div>
-      <span>{coins}</span>
+      <CoinIcon />
+      <span>
+        {isLoading
+          ? lang === "fa"
+            ? "در حال بارگیری..."
+            : "Loading..."
+          : coins}
+      </span>
     </div>
   );
 }
 
-function SideNavigation({ currentPage, setPage }) {
+type PageType = "feed" | "about" | "settings" | "profile";
+type NavProps = {
+  currentPage: PageType;
+  setPage: (page: PageType) => void;
+};
+
+function SideNavigation({ currentPage, setPage }: NavProps) {
   const { lang } = useLang();
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
-  const [coins, setCoins] = useState(0);
+  const [coins, setCoins] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserCoins = async () => {
-      if (user?.id) {
+      if (isSignedIn && user?.id) {
         try {
+          setLoading(true);
           const token = await getToken({ template: "fullname" });
-          const response = await fetch(`${API_URL}/users/${user.id}`, {
+          const response = await fetch(`${API_URL}/getcoins`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
+          if (!response.ok) throw new Error("Failed to fetch coins");
           const data = await response.json();
-          setCoins(data.coins || 0);
+          setCoins(data);
         } catch (error) {
           console.error("Failed to fetch user coins:", error);
+          setCoins(0);
+        } finally {
+          setLoading(false);
         }
       }
     };
 
     fetchUserCoins();
-  }, [user?.id]);
+  }, [user?.id, isSignedIn]);
 
   return (
     <nav className='side-navigation'>
@@ -334,7 +423,7 @@ function SideNavigation({ currentPage, setPage }) {
           <UserButton />
         </div>
       </div>
-      <CoinCounter coins={coins} />
+      <CoinCounter coins={coins} isLoading={loading} lang={lang} />
       <div className='nav-links'>
         <a
           href='/'
@@ -401,7 +490,7 @@ function SideNavigation({ currentPage, setPage }) {
   );
 }
 
-function BottomNavigation({ currentPage, setPage }) {
+function BottomNavigation({ currentPage, setPage }: NavProps) {
   const { lang } = useLang();
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -412,13 +501,14 @@ function BottomNavigation({ currentPage, setPage }) {
       if (user?.id) {
         try {
           const token = await getToken({ template: "fullname" });
-          const response = await fetch(`${API_URL}/users/${user.id}`, {
+          const response = await fetch(`${API_URL}/getcoins`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          const data = await response.json();
-          setCoins(data.coins || 0);
+          if (!response.ok) throw new Error("Failed to fetch coins");
+          const coins = await response.json();
+          setCoins(coins);
         } catch (error) {
           console.error("Failed to fetch user coins:", error);
         }
@@ -430,15 +520,6 @@ function BottomNavigation({ currentPage, setPage }) {
 
   return (
     <nav className='bottom-navigation'>
-      <div className='mobile-coin-counter'>
-        <div className='coin-icon'>
-          <svg viewBox='0 0 24 24'>
-            <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z' />
-          </svg>
-          <div className='coin-shine'></div>
-        </div>
-        <span>{coins}</span>
-      </div>
       <div className='bottom-nav-links'>
         <a
           href='/'
@@ -461,32 +542,6 @@ function BottomNavigation({ currentPage, setPage }) {
         </a>
 
         <a
-          href='/profile'
-          className={`bottom-nav-link profile-link ${
-            currentPage === "profile" ? "active" : ""
-          }`}
-          onClick={(e) => {
-            e.preventDefault();
-            setPage("profile");
-          }}
-        >
-          {user?.imageUrl ? (
-            <div className='profile-mini'>
-              <img src={user.imageUrl} alt={user.fullName || "Profile"} />
-            </div>
-          ) : (
-            <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-              />
-            </svg>
-          )}
-          <span>{TEXT[lang].profile}</span>
-        </a>
-
-        <a
           href='/about'
           className={`bottom-nav-link ${
             currentPage === "about" ? "active" : ""
@@ -504,6 +559,31 @@ function BottomNavigation({ currentPage, setPage }) {
             />
           </svg>
           <span>{TEXT[lang].about}</span>
+        </a>
+
+        <div className='mobile-coin-counter'>
+          <CoinIcon />
+          <span>{coins}</span>
+        </div>
+
+        <a
+          href='/profile'
+          className={`bottom-nav-link ${
+            currentPage === "profile" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("profile");
+          }}
+        >
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+            />
+          </svg>
+          <span>{TEXT[lang].profile}</span>
         </a>
 
         <a
@@ -636,11 +716,7 @@ function App() {
     <ThemeProvider>
       <LangProvider>
         <div className='app-layout'>
-          <SideNavigation
-            currentPage={page}
-            setPage={handlePageChange}
-            setShowModal={setShowModal}
-          />
+          <SideNavigation currentPage={page} setPage={handlePageChange} />
           <BottomNavigation currentPage={page} setPage={handlePageChange} />
           {!selectedPostId && (
             <button className='fab-button' onClick={() => setShowModal(true)}>
@@ -733,13 +809,34 @@ function MainArea({
 }
 
 function ProfilePage() {
-  const { user } = useUser();
-  const { lang } = useLang();
+  const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState<"posts" | "level">("posts");
   const [userPosts, setUserPosts] = useState<PostDisponivel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { lang } = useLang();
+
+  // Show sign in screen if not signed in
+  if (!isSignedIn) {
+    return (
+      <main className='main-feed'>
+        <header className='main-header'>
+          <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
+        </header>
+        <div className='profile-container'>
+          <div className='profile-signin'>
+            <h2>{lang === "fa" ? "لطفا وارد شوید" : "Please Sign In"}</h2>
+            <SignInButton>
+              <button className='sign-out-button'>
+                {lang === "fa" ? "ورود به حساب کاربری" : "Sign In"}
+              </button>
+            </SignInButton>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const fetchUserPosts = async () => {
     try {
@@ -750,9 +847,9 @@ function ProfilePage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!response.ok) throw new Error("Failed to fetch posts");
-      const data = await response.json();
-      setUserPosts(data);
+      if (!response.ok) throw new Error("Failed to fetch user posts");
+      const userPosts = await response.json();
+      setUserPosts(userPosts);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -761,8 +858,10 @@ function ProfilePage() {
   };
 
   useEffect(() => {
-    fetchUserPosts();
-  }, []);
+    if (user?.id) {
+      fetchUserPosts();
+    }
+  }, [user?.id]);
 
   const handleLike = async (id: string) => {
     try {
@@ -803,26 +902,6 @@ function ProfilePage() {
     }
   };
 
-  useEffect(() => {
-    const tabs = document.querySelectorAll(".profile-tab");
-    const indicator = document.querySelector(".tab-indicator");
-
-    if (tabs.length && indicator) {
-      const activeTab = document.querySelector(
-        ".profile-tab.active"
-      ) as HTMLElement;
-      if (activeTab) {
-        indicator.setAttribute(
-          "style",
-          `
-          width: ${activeTab.offsetWidth}px;
-          left: ${activeTab.offsetLeft}px;
-        `
-        );
-      }
-    }
-  }, [activeTab]);
-
   return (
     <main className='main-feed'>
       <header className='main-header'>
@@ -843,7 +922,7 @@ function ProfilePage() {
             <h2 className='profile-name'>
               {user?.fullName ||
                 user?.username ||
-                user?.primaryEmailAddress?.emailAddress}
+                user?.emailAddresses?.[0]?.emailAddress}
             </h2>
             <div className='profile-id'>{user?.id}</div>
             <SignOutButton>
@@ -852,6 +931,7 @@ function ProfilePage() {
               </button>
             </SignOutButton>
           </div>
+
           <div className='profile-content-section'>
             <nav className='profile-nav'>
               <button
@@ -895,7 +975,7 @@ function ProfilePage() {
                           post={post}
                           onLike={handleLike}
                           onDelete={handleDelete}
-                          currentUserId={user?.id || ""}
+                          currentUserId={user?.id}
                           showAlert={() => {}}
                         />
                       ))}
@@ -1240,13 +1320,13 @@ function MainFeed({
   setNewPost: (p: PostDisponivel | null) => void;
   showAlert: (message: string) => void;
 }) {
-  const { lang } = useLang();
+  const { user } = useUser();
   useTheme();
   const [posts, setPosts] = useState<PostDisponivel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { getToken } = useAuth();
-  const { user } = useUser();
+  const { lang } = useLang();
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -1599,7 +1679,7 @@ function PostPage({
   if (!post) return <div className='post-page-error'>Post not found</div>;
 
   const isFarsi = detectFarsi(post.contains);
-  const hasLiked = post.likes.includes(user?.id || "");
+  const hasLiked = post?.likes.includes(user?.id || "");
 
   return (
     <main className='main-feed'>

@@ -101,7 +101,7 @@ def like_post(post_id: str, user=Depends(get_current_user)):
     """
     Like a specific post.
     """
-    current = supabase.table("posts").select("likes").eq("id", post_id).execute()
+    current = supabase.table("posts").select("*").eq("id", post_id).execute()
     if not current.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -140,7 +140,7 @@ def delete_like_post(post_id: str, user=Depends(get_current_user)):
     """
     Remove a like from a specific post.
     """
-    current = supabase.table("posts").select("likes").eq("id", post_id).execute()
+    current = supabase.table("posts").select("*").eq("id", post_id).execute()
     if not current.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -159,9 +159,10 @@ def delete_like_post(post_id: str, user=Depends(get_current_user)):
         if creator.data:
             current_coins = creator.data[0]["coins"]
             # Update creator's coins
-            supabase.table("users").update({"coins": current_coins - 1}).eq(
-                "user_id", creator_id
-            ).execute()
+            if current_coins > 0:
+                supabase.table("users").update({"coins": current_coins - 1}).eq(
+                    "user_id", creator_id
+                ).execute()
 
     result = (
         supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
@@ -280,7 +281,7 @@ def like_comment(post_id: int, comment_id: int, user=Depends(get_current_user)):
     """
     current = (
         supabase.table("comments")
-        .select("likes")
+        .select("*")
         .eq("id", comment_id)
         .eq("post_id", post_id)
         .execute()
@@ -328,7 +329,7 @@ def delete_like_comment(post_id: int, comment_id: int, user=Depends(get_current_
     """
     current = (
         supabase.table("comments")
-        .select("likes")
+        .select("*")
         .eq("id", comment_id)
         .eq("post_id", post_id)
         .execute()
@@ -351,9 +352,10 @@ def delete_like_comment(post_id: int, comment_id: int, user=Depends(get_current_
         if creator.data:
             current_coins = creator.data[0]["coins"]
             # Update creator's coins
-            supabase.table("users").update({"coins": current_coins - 1}).eq(
-                "user_id", creator_id
-            ).execute()
+            if current_coins > 0:
+                supabase.table("users").update({"coins": current_coins - 1}).eq(
+                    "user_id", creator_id
+                ).execute()
 
     result = (
         supabase.table("comments")
@@ -446,3 +448,13 @@ def new_user(user=Depends(get_current_user)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create user: {str(e)}",
         )
+
+
+@app.get("/getcoins", tags=[User], summary="Get User's coins")
+def get_coins(user=Depends(get_current_user)):
+    result = (
+        supabase.table("users").select("*").eq("user_id", user.get("sub")).execute()
+    )
+    if not result.data:
+        return 0
+    return result.data[0]["coins"]
