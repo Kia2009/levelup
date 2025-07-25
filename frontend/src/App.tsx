@@ -9,6 +9,8 @@ import {
   SignInButton,
 } from "@clerk/clerk-react";
 import { renderMarkdown } from "./markdown";
+import BadgeProgress from "./components/BadgeProgress";
+import UserBadge from "./components/UserBadge";
 
 const TEXT = {
   en: {
@@ -16,6 +18,7 @@ const TEXT = {
     about: "About",
     rights: "Rights",
     settings: "Settings",
+    shop: "Shop",
     addPost: "Add Post",
     feed: "LevelUp Feed",
     aboutTitle: "About LevelUp",
@@ -59,6 +62,7 @@ const TEXT = {
     about: "درباره",
     rights: "حقوق",
     settings: "تنظیمات",
+    shop: "فروشگاه",
     profile: "حساب کاربری",
     addPost: "افزودن پست",
     feed: "فید LevelUp",
@@ -141,6 +145,23 @@ function PostCard({
   const isOwner = currentUserId ? post.user_id === currentUserId : false;
   const hasLiked = currentUserId ? post.likes.includes(currentUserId) : false;
   const { getToken } = useAuth();
+  const [userCoins, setUserCoins] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchUserCoins = async () => {
+      try {
+        const res = await fetch(`${API_URL}/users/${post.user_id}/coins`);
+        if (res.ok) {
+          const coins = await res.json();
+          setUserCoins(coins);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user coins:', err);
+      }
+    };
+
+    fetchUserCoins();
+  }, [post.user_id]);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -194,7 +215,16 @@ function PostCard({
       <div className='post-card-header'>
         <div className='post-meta'>
           <h2>{post.title}</h2>
-          <span className='post-author'>{post.creator}</span>
+          <div className='post-author-with-badge'>
+            <span className='post-author'>{post.creator}</span>
+            <UserBadge 
+              coins={userCoins} 
+              lang={lang} 
+              size='small' 
+              showTooltip={true}
+              creator={post.creator}
+            />
+          </div>
           <span className='post-date'>
             {new Date(post.created_at).toLocaleDateString()}
           </span>
@@ -376,7 +406,28 @@ function CoinCounter({
   );
 }
 
-type PageType = "feed" | "about" | "settings" | "profile";
+function UserCoinsWithBadge({
+  coins,
+  isLoading,
+  lang,
+}: {
+  coins: number | null;
+  isLoading: boolean;
+  lang: "en" | "fa";
+}) {
+  if (isLoading || coins === null) {
+    return <CoinCounter coins={coins} isLoading={isLoading} lang={lang} />;
+  }
+
+  return (
+    <>
+      <CoinCounter coins={coins} isLoading={isLoading} lang={lang} />
+      <BadgeProgress coins={coins} lang={lang} />
+    </>
+  );
+}
+
+type PageType = "feed" | "about" | "settings" | "profile" | "shop";
 type NavProps = {
   currentPage: PageType;
   setPage: (page: PageType) => void;
@@ -423,7 +474,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           <UserButton />
         </div>
       </div>
-      <CoinCounter coins={coins} isLoading={loading} lang={lang} />
+      <UserCoinsWithBadge coins={coins} isLoading={loading} lang={lang} />
       <div className='nav-links'>
         <a
           href='/'
@@ -469,6 +520,20 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
             <line x1='12' y1='8' x2='12.01' y2='8' />
           </svg>
           <span>{TEXT[lang].about}</span>
+        </a>
+
+        <a
+          href='/shop'
+          className={`nav-link ${currentPage === "shop" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("shop");
+          }}
+        >
+          <svg viewBox='0 0 24 24'>
+            <path d='M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM7 6V19H17V6H7Z' />
+          </svg>
+          <span>{TEXT[lang].shop}</span>
         </a>
 
         <a
@@ -587,6 +652,26 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
         </a>
 
         <a
+          href='/shop'
+          className={`bottom-nav-link ${
+            currentPage === "shop" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("shop");
+          }}
+        >
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM7 6V19H17V6H7Z'
+            />
+          </svg>
+          <span>{TEXT[lang].shop}</span>
+        </a>
+
+        <a
           href='/settings'
           className={`bottom-nav-link ${
             currentPage === "settings" ? "active" : ""
@@ -616,7 +701,7 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
 }
 
 function App() {
-  const [page, setPage] = useState<"feed" | "about" | "settings" | "profile">(
+  const [page, setPage] = useState<"feed" | "about" | "settings" | "profile" | "shop">(
     "feed"
   );
   const [showModal, setShowModal] = useState(false);
@@ -655,6 +740,8 @@ function App() {
       setPage("settings");
     } else if (path === "/profile") {
       setPage("profile");
+    } else if (path === "/shop") {
+      setPage("shop");
     } else {
       const match = path.match(/^\/(\d+)$/);
       if (match) {
@@ -674,7 +761,7 @@ function App() {
   }, []);
 
   const handlePageChange = (
-    newPage: "feed" | "about" | "settings" | "profile"
+    newPage: "feed" | "about" | "settings" | "profile" | "shop"
   ) => {
     setPage(newPage);
     setSelectedPostId(null);
@@ -769,12 +856,12 @@ function MainArea({
   setNewPost,
   showAlert,
 }: {
-  page: "feed" | "about" | "settings" | "profile";
+  page: "feed" | "about" | "settings" | "profile" | "shop";
   setShowModal: (b: boolean) => void;
   showModal: boolean;
   newPost: PostDisponivel | null;
   setNewPost: (p: PostDisponivel | null) => void;
-  setPage: (p: "feed" | "about" | "settings" | "profile") => void;
+  setPage: (p: "feed" | "about" | "settings" | "profile" | "shop") => void;
   showAlert: (message: string) => void;
 }) {
   const { lang } = useLang();
@@ -793,6 +880,7 @@ function MainArea({
         )}
         {page === "about" && <AboutPage />}
         {page === "settings" && <SettingsPage />}
+        {page === "shop" && <ShopPage />}
         {showModal && (
           <CreatePostModal
             onClose={() => setShowModal(false)}
@@ -808,6 +896,30 @@ function MainArea({
   );
 }
 
+function ShopPage() {
+  const { lang } = useLang();
+
+  return (
+    <main className='main-feed'>
+      <header className='main-header'>
+        <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+          {TEXT[lang].shop}
+        </h1>
+      </header>
+      <div className='about-content'>
+        <h2 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+          {lang === "fa" ? "به زودی..." : "Coming Soon..."}
+        </h2>
+        <p className={lang === "fa" ? "farsi-font" : "latin-font"}>
+          {lang === "fa" 
+            ? "فروشگاه ما به زودی راه‌اندازی خواهد شد. منتظر بمانید!"
+            : "Our shop will be launching soon. Stay tuned!"}
+        </p>
+      </div>
+    </main>
+  );
+}
+
 function ProfilePage() {
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
@@ -815,6 +927,7 @@ function ProfilePage() {
   const [userPosts, setUserPosts] = useState<PostDisponivel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [coins, setCoins] = useState<number>(0);
   const { lang } = useLang();
 
   // Show sign in screen if not signed in
@@ -842,14 +955,23 @@ function ProfilePage() {
     try {
       setLoading(true);
       const token = await getToken({ template: "fullname" });
-      const response = await fetch(`${API_URL}/myposts`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch user posts");
-      const userPosts = await response.json();
+      const [postsResponse, coinsResponse] = await Promise.all([
+        fetch(`${API_URL}/myposts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/getcoins`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      ]);
+      
+      if (!postsResponse.ok) throw new Error("Failed to fetch user posts");
+      if (!coinsResponse.ok) throw new Error("Failed to fetch user coins");
+      
+      const userPosts = await postsResponse.json();
+      const userCoins = await coinsResponse.json();
+      
       setUserPosts(userPosts);
+      setCoins(userCoins);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -983,7 +1105,9 @@ function ProfilePage() {
                   )}
                 </div>
               ) : (
-                <div className='profile-level'>Level content here</div>
+                <div className='profile-level'>
+                  <UserCoinsWithBadge coins={coins} isLoading={loading} lang={lang} />
+                </div>
               )}
             </div>
           </div>
@@ -1526,6 +1650,8 @@ function PostPage({
   const [commentLoading, setCommentLoading] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [postAuthorCoins, setPostAuthorCoins] = useState<number>(0);
+  const [commentCoins, setCommentCoins] = useState<{[key: string]: number}>({});
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -1534,6 +1660,13 @@ function PostPage({
         if (!res.ok) throw new Error("Failed to fetch post");
         const data = await res.json();
         setPost(data);
+        
+        // Fetch post author coins
+        const coinsRes = await fetch(`${API_URL}/users/${data.user_id}/coins`);
+        if (coinsRes.ok) {
+          const coins = await coinsRes.json();
+          setPostAuthorCoins(coins);
+        }
       } catch (err: any) {
         setError(err.message);
       }
@@ -1545,6 +1678,21 @@ function PostPage({
         if (!res.ok) throw new Error("Failed to fetch comments");
         const data = await res.json();
         setComments(data);
+        
+        // Fetch coins for all comment authors
+        const coinsMap: {[key: string]: number} = {};
+        for (const comment of data) {
+          try {
+            const coinsRes = await fetch(`${API_URL}/users/${comment.user_id}/coins`);
+            if (coinsRes.ok) {
+              const coins = await coinsRes.json();
+              coinsMap[comment.user_id] = coins;
+            }
+          } catch (err) {
+            console.error('Failed to fetch coins for user:', comment.user_id);
+          }
+        }
+        setCommentCoins(coinsMap);
       } catch (err: any) {
         setError(err.message);
       }
@@ -1700,7 +1848,16 @@ function PostPage({
           <div className='post-detail-header'>
             <h1>{post.title}</h1>
             <div className='post-meta'>
-              <span className='post-author'>@{post.creator}</span>
+              <div className='post-author-with-badge'>
+                <span className='post-author'>@{post.creator}</span>
+                <UserBadge 
+                  coins={postAuthorCoins} 
+                  lang={lang} 
+                  size='small' 
+                  showTooltip={true}
+                  creator={post.creator}
+                />
+              </div>
               <span className='post-date'>
                 {new Date(post.created_at).toLocaleDateString()}
               </span>
@@ -1753,7 +1910,16 @@ function PostPage({
                   }}
                 >
                   <div className='comment-meta'>
-                    <span className='comment-author'>{comment.creator}</span>
+                    <div className='post-author-with-badge'>
+                      <span className='comment-author'>{comment.creator}</span>
+                      <UserBadge 
+                        coins={commentCoins[comment.user_id] || 0} 
+                        lang={lang} 
+                        size='small' 
+                        showTooltip={true}
+                        creator={comment.creator}
+                      />
+                    </div>
                     <span className='comment-date'>
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>

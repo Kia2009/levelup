@@ -1254,6 +1254,12 @@ body::before {
   font-size: 0.9rem;
 }
 
+.comment-meta .post-author-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .comment-date {
   font-size: 0.8rem;
   color: var(--color-text-tertiary);
@@ -1729,4 +1735,106 @@ body::before {
 .coin-counter .coin-icon {
   width: 24px;
   height: 24px;
+}
+
+/* Badge Progress Styles */
+.badge-progress {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(0, 196, 255, 0.1), rgba(255, 0, 122, 0.1));
+  border-radius: 12px;
+  margin: 16px 24px;
+  border: 1px solid var(--color-border);
+}
+
+.badge-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.current-badge,
+.next-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.badge-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-bg);
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: progressPulse 2s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.progress-text {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* User Badge Styles */
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-badge.badge-small .badge-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.user-badge.badge-medium .badge-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.post-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 4px;
+  position: relative;
+}
+
+.post-author-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }

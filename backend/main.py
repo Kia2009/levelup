@@ -18,7 +18,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -454,6 +454,19 @@ def new_user(user=Depends(get_current_user)):
 def get_coins(user=Depends(get_current_user)):
     result = (
         supabase.table("users").select("*").eq("user_id", user.get("sub")).execute()
+    )
+    if not result.data:
+        return 0
+    return result.data[0]["coins"]
+
+
+@app.get("/users/{user_id}/coins", tags=["User"], summary="Get coins for a specific user")
+def get_user_coins(user_id: str):
+    """
+    Get coins for a specific user by their user_id.
+    """
+    result = (
+        supabase.table("users").select("coins").eq("user_id", user_id).execute()
     )
     if not result.data:
         return 0
