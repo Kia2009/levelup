@@ -22,12 +22,12 @@ const TEXT = {
     addPost: "Add Post",
     feed: "LevelUp Feed",
     aboutTitle: "About LevelUp",
-    aboutContent: `<b>LevelUp</b> is a modern, student-focused social platform inspired by Twitter/X, designed for students to share posts, like, and interact in a beautiful, fast, and accessible environment. Built with React (Vite) and FastAPI, it features dark/light mode, Farsi/English font support, and a clean, responsive UI. Created by KGH & Taha.`,
+    aboutContent: `<b>LevelUp</b> is an innovative social platform designed for students, transforming studying and learning into an engaging video game experience. Share posts, collaborate on challenges, earn rewards, and level up your knowledge in a dynamic and interactive environment. Built with React (Vite) and FastAPI, it features dark/light mode, Farsi/English font support, and a clean, responsive UI. Created by KGH & Taha.`,
     aboutList: [
-      "Post creation, likes, and views are all interactive and real-time.",
-      "Supports both Farsi and English with automatic font switching.",
-      "Modern design, animations, and accessibility in mind.",
-      "Open source and easy to extend for your school or university.",
+      "Gamified learning: Turn your studies into exciting quests and challenges.",
+      "Interactive social feed: Share insights, ask questions, and connect with peers.",
+      "Earn rewards: Collect coins and unlock exclusive badges as you progress.",
+      "Real-time collaboration: Work together on projects and study groups.",
     ],
     createdBy: "Created by KGH & Taha",
     allRights: "All rights reserved. LevelUp",
@@ -67,12 +67,12 @@ const TEXT = {
     addPost: "افزودن پست",
     feed: "فید LevelUp",
     aboutTitle: "درباره LevelUp",
-    aboutContent: `<b>LevelUp</b> یک پلتفرم اجتماعی مدرن برای دانش‌آموزان است که با الهام از توییتر/X ساخته شده و برای اشتراک‌گذاری پست، لایک و تعامل سریع و زیبا طراحی شده است. این پروژه با React (Vite) و FastAPI ساخته شده و دارای حالت تاریک/روشن، پشتیبانی از فارسی/انگلیسی و رابط کاربری تمیز و واکنش‌گرا است. ساخته شده توسط KGH و Taha.`,
+    aboutContent: `<b>LevelUp</b> یک پلتفرم اجتماعی نوآورانه است که برای دانش‌آموزان و دانشجویان طراحی شده و مطالعه و یادگیری را به یک تجربه بازی ویدیویی جذاب تبدیل می‌کند. پست‌ها را به اشتراک بگذارید، در چالش‌ها همکاری کنید، جوایز کسب کنید و دانش خود را در یک محیط پویا و تعاملی ارتقا دهید. این پلتفرم با React (Vite) و FastAPI ساخته شده و دارای حالت تاریک/روشن، پشتیبانی از فارسی/انگلیسی و رابط کاربری تمیز و واکنش‌گرا است. ساخته شده توسط کیا قناعتی و محمدطه خراسانی زاده.`,
     aboutList: [
-      "ایجاد پست، لایک و بازدید کاملاً تعاملی و بلادرنگ است.",
-      "پشتیبانی از فارسی و انگلیسی با تشخیص خودکار فونت.",
-      "طراحی مدرن، انیمیشن و دسترس‌پذیری.",
-      "متن‌باز و قابل توسعه برای مدارس و دانشگاه‌ها.",
+      "یادگیری گیمیفای شده: دروس خود را به ماموریت‌ها و چالش‌های هیجان‌انگیز تبدیل کنید.",
+      "فید اجتماعی تعاملی: بینش‌ها را به اشتراک بگذارید، سوال بپرسید و با همتایان خود ارتباط برقرار کنید.",
+      "کسب پاداش: با پیشرفت، سکه‌ها را جمع‌آوری کرده و نشان‌های انحصاری را باز کنید.",
+      "همکاری بلادرنگ: روی پروژه‌ها و گروه‌های مطالعه با یکدیگر کار کنید.",
     ],
     createdBy: "ساخته شده توسط KGH و Taha",
     allRights: "تمام حقوق محفوظ است. LevelUp",
@@ -156,7 +156,7 @@ function PostCard({
           setUserCoins(coins);
         }
       } catch (err) {
-        console.error('Failed to fetch user coins:', err);
+        console.error("Failed to fetch user coins:", err);
       }
     };
 
@@ -217,10 +217,10 @@ function PostCard({
           <h2>{post.title}</h2>
           <div className='post-author-with-badge'>
             <span className='post-author'>{post.creator}</span>
-            <UserBadge 
-              coins={userCoins} 
-              lang={lang} 
-              size='small' 
+            <UserBadge
+              coins={userCoins}
+              lang={lang}
+              size='small'
               showTooltip={true}
               creator={post.creator}
             />
@@ -507,22 +507,6 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
         </a>
 
         <a
-          href='/about'
-          className={`nav-link ${currentPage === "about" ? "active" : ""}`}
-          onClick={(e) => {
-            e.preventDefault();
-            setPage("about");
-          }}
-        >
-          <svg viewBox='0 0 24 24'>
-            <circle cx='12' cy='12' r='10' />
-            <line x1='12' y1='16' x2='12' y2='12' />
-            <line x1='12' y1='8' x2='12.01' y2='8' />
-          </svg>
-          <span>{TEXT[lang].about}</span>
-        </a>
-
-        <a
           href='/shop'
           className={`nav-link ${currentPage === "shop" ? "active" : ""}`}
           onClick={(e) => {
@@ -607,31 +591,6 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
         </a>
 
         <a
-          href='/about'
-          className={`bottom-nav-link ${
-            currentPage === "about" ? "active" : ""
-          }`}
-          onClick={(e) => {
-            e.preventDefault();
-            setPage("about");
-          }}
-        >
-          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-            />
-          </svg>
-          <span>{TEXT[lang].about}</span>
-        </a>
-
-        <div className='mobile-coin-counter'>
-          <CoinIcon />
-          <span>{coins}</span>
-        </div>
-
-        <a
           href='/profile'
           className={`bottom-nav-link ${
             currentPage === "profile" ? "active" : ""
@@ -650,6 +609,11 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
           </svg>
           <span>{TEXT[lang].profile}</span>
         </a>
+
+        <div className='mobile-coin-counter'>
+          <CoinIcon />
+          <span>{coins}</span>
+        </div>
 
         <a
           href='/shop'
@@ -701,15 +665,16 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
 }
 
 function App() {
-  const [page, setPage] = useState<"feed" | "about" | "settings" | "profile" | "shop">(
-    "feed"
-  );
+  const [page, setPage] = useState<
+    "feed" | "about" | "settings" | "profile" | "shop"
+  >("feed");
   const [showModal, setShowModal] = useState(false);
   const [newPost, setNewPost] = useState<PostDisponivel | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const { lang } = useLang();
 
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -812,7 +777,7 @@ function App() {
                   <path d='M12 5v14M5 12h14' />
                 </svg>
               </div>
-              <span className='fab-text'>Add Post</span>
+              <span className='fab-text'>{TEXT[lang].addPost}</span>
             </button>
           )}
           <LoadingBar isLoading={isLoading} />
@@ -911,7 +876,7 @@ function ShopPage() {
           {lang === "fa" ? "به زودی..." : "Coming Soon..."}
         </h2>
         <p className={lang === "fa" ? "farsi-font" : "latin-font"}>
-          {lang === "fa" 
+          {lang === "fa"
             ? "فروشگاه ما به زودی راه‌اندازی خواهد شد. منتظر بمانید!"
             : "Our shop will be launching soon. Stay tuned!"}
         </p>
@@ -961,15 +926,15 @@ function ProfilePage() {
         }),
         fetch(`${API_URL}/getcoins`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        }),
       ]);
-      
+
       if (!postsResponse.ok) throw new Error("Failed to fetch user posts");
       if (!coinsResponse.ok) throw new Error("Failed to fetch user coins");
-      
+
       const userPosts = await postsResponse.json();
       const userCoins = await coinsResponse.json();
-      
+
       setUserPosts(userPosts);
       setCoins(userCoins);
     } catch (err: any) {
@@ -1106,7 +1071,11 @@ function ProfilePage() {
                 </div>
               ) : (
                 <div className='profile-level'>
-                  <UserCoinsWithBadge coins={coins} isLoading={loading} lang={lang} />
+                  <UserCoinsWithBadge
+                    coins={coins}
+                    isLoading={loading}
+                    lang={lang}
+                  />
                 </div>
               )}
             </div>
@@ -1619,6 +1588,23 @@ function Footer() {
       <div>{TEXT[lang].createdBy}</div>
       <div id='rights'>
         {TEXT[lang].allRights} © {new Date().getFullYear()}
+        {/* اضافه کردن لینک About */}
+        <span style={{ margin: "0 8px" }}>•</span> {/* یک جداکننده کوچک */}
+        <a
+          href='/about'
+          onClick={(e) => {
+            e.preventDefault();
+            // اگر setPage به عنوان prop در دسترس باشد:
+            // setPage("about");
+            // در غیر این صورت، از window.location یا useNavigate استفاده کنید:
+            window.history.pushState(null, "", "/about");
+            window.location.reload(); // یا مدیریت state مناسب برای رندر مجدد صفحه
+          }}
+          style={{ color: "var(--color-primary)", textDecoration: "underline" }}
+          className={lang === "fa" ? "farsi-font" : "latin-font"}
+        >
+          {TEXT[lang].about}
+        </a>
       </div>
     </footer>
   );
@@ -1651,7 +1637,9 @@ function PostPage({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [postAuthorCoins, setPostAuthorCoins] = useState<number>(0);
-  const [commentCoins, setCommentCoins] = useState<{[key: string]: number}>({});
+  const [commentCoins, setCommentCoins] = useState<{ [key: string]: number }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -1660,7 +1648,7 @@ function PostPage({
         if (!res.ok) throw new Error("Failed to fetch post");
         const data = await res.json();
         setPost(data);
-        
+
         // Fetch post author coins
         const coinsRes = await fetch(`${API_URL}/users/${data.user_id}/coins`);
         if (coinsRes.ok) {
@@ -1678,18 +1666,20 @@ function PostPage({
         if (!res.ok) throw new Error("Failed to fetch comments");
         const data = await res.json();
         setComments(data);
-        
+
         // Fetch coins for all comment authors
-        const coinsMap: {[key: string]: number} = {};
+        const coinsMap: { [key: string]: number } = {};
         for (const comment of data) {
           try {
-            const coinsRes = await fetch(`${API_URL}/users/${comment.user_id}/coins`);
+            const coinsRes = await fetch(
+              `${API_URL}/users/${comment.user_id}/coins`
+            );
             if (coinsRes.ok) {
               const coins = await coinsRes.json();
               coinsMap[comment.user_id] = coins;
             }
           } catch (err) {
-            console.error('Failed to fetch coins for user:', comment.user_id);
+            console.error("Failed to fetch coins for user:", comment.user_id);
           }
         }
         setCommentCoins(coinsMap);
@@ -1850,10 +1840,10 @@ function PostPage({
             <div className='post-meta'>
               <div className='post-author-with-badge'>
                 <span className='post-author'>@{post.creator}</span>
-                <UserBadge 
-                  coins={postAuthorCoins} 
-                  lang={lang} 
-                  size='small' 
+                <UserBadge
+                  coins={postAuthorCoins}
+                  lang={lang}
+                  size='small'
                   showTooltip={true}
                   creator={post.creator}
                 />
@@ -1912,10 +1902,10 @@ function PostPage({
                   <div className='comment-meta'>
                     <div className='post-author-with-badge'>
                       <span className='comment-author'>{comment.creator}</span>
-                      <UserBadge 
-                        coins={commentCoins[comment.user_id] || 0} 
-                        lang={lang} 
-                        size='small' 
+                      <UserBadge
+                        coins={commentCoins[comment.user_id] || 0}
+                        lang={lang}
+                        size='small'
                         showTooltip={true}
                         creator={comment.creator}
                       />

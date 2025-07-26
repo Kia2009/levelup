@@ -295,6 +295,11 @@ body::before {
   justify-content: center;
 }
 
+[dir="rtl"] .fab-button {
+  right: auto;
+  left: 24px;
+}
+
 /* Update add comment button position */
 .add-comment-btn {
   position: fixed;
@@ -1740,7 +1745,11 @@ body::before {
 /* Badge Progress Styles */
 .badge-progress {
   padding: 16px 24px;
-  background: linear-gradient(135deg, rgba(0, 196, 255, 0.1), rgba(255, 0, 122, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 196, 255, 0.1),
+    rgba(255, 0, 122, 0.1)
+  );
   border-radius: 12px;
   margin: 16px 24px;
   border: 1px solid var(--color-border);
@@ -1797,8 +1806,13 @@ body::before {
 }
 
 @keyframes progressPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .progress-text {
