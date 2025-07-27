@@ -1852,3 +1852,83 @@ body::before {
   align-items: center;
   gap: 6px;
 }
+
+/* Ensure footer is visible in mobile view */
+@media (max-width: 1024px) {
+  .footer {
+    position: relative; /* Change to relative to avoid overlap with bottom-navigation */
+    margin-bottom: 80px; /* Add margin to clear bottom-navigation (64px height + padding) */
+    z-index: 5; /* Ensure footer is below bottom-navigation (z-index: 100) */
+  }
+}
+
+/* Fix profile page alignments in mobile view */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 16px; /* Reduce padding for smaller screens */
+    margin: 80px auto 80px; /* Adjust margin to account for bottom-navigation and footer */
+    max-width: 100%; /* Ensure container fits within viewport */
+    box-sizing: border-box;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr; /* Switch to single-column layout */
+    gap: 24px; /* Reduce gap between sections */
+  }
+
+  .profile-info-section {
+    border-right: none; /* Remove right border in mobile view */
+    border-bottom: 2px solid var(--color-border); /* Add bottom border for separation */
+    padding: 16px; /* Reduce padding */
+    align-items: center;
+  }
+
+  [dir="rtl"] .profile-info-section {
+    border-left: none; /* Remove left border in RTL mode */
+    border-bottom: 2px solid var(--color-border); /* Consistent bottom border */
+  }
+
+  .profile-content-section {
+    padding: 0; /* Remove extra padding to fit content */
+  }
+
+  .profile-nav {
+    gap: 16px; /* Reduce gap between tabs */
+    justify-content: center; /* Center tabs */
+  }
+
+  .profile-tab {
+    font-size: 16px; /* Slightly smaller font size for tabs */
+    padding: 6px 12px; /* Adjust padding for smaller screens */
+  }
+
+  .profile-posts .post-list {
+    grid-template-columns: 1fr; /* Single column for posts */
+    padding: 16px; /* Adjust padding */
+  }
+
+  .post-card {
+    margin: 0; /* Remove extra margins to keep within viewport */
+  }
+}
+
+/* Additional adjustments for very small screens */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 12px; /* Further reduce padding */
+  }
+
+  .profile-name {
+    font-size: 20px; /* Smaller font size for name */
+  }
+
+  .profile-picture-container .cl-userButtonAvatarBox {
+    width: 100px !important; /* Slightly smaller profile picture */
+    height: 100px !important;
+  }
+
+  .sign-out-button {
+    padding: 10px 20px; /* Adjust button padding */
+    font-size: 14px; /* Smaller font size */
+  }
+}
