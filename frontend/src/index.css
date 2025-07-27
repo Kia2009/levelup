@@ -1,18 +1,24 @@
+/* index.css */
+
+/* تنظیمات ریشه (root) برای متغیرهای عمومی و پیش‌فرض‌های فونت */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
+  /* تنظیمات طرح رنگ برای حالت‌های تاریک و روشن */
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
+  /* بهینه‌سازی رندر فونت */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* استایل پیش‌فرض برای لینک‌ها */
 a {
   font-weight: 500;
   color: #646cff;
@@ -22,6 +28,7 @@ a:hover {
   color: #535bf2;
 }
 
+/* استایل‌های اصلی بدنه (body) صفحه */
 body {
   margin: 0;
   display: flex;
@@ -30,11 +37,13 @@ body {
   min-height: 100vh;
 }
 
+/* استایل پیش‌فرض برای تیتر h1 */
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
 
+/* استایل پیش‌فرض برای دکمه‌ها */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -54,6 +63,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* استایل‌های مخصوص حالت روشن (light mode) */
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

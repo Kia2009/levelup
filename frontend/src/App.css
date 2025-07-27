@@ -1,6 +1,10 @@
+/* App.css */
+
+/* وارد کردن فونت‌های Inter برای لاتین و Vazirmatn برای فارسی از گوگل فونت */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap");
 
+/* تعریف متغیرهای CSS برای تم تاریک (پیش‌فرض) */
 :root {
   --color-bg: #000000;
   --color-text: #ffffff;
@@ -20,6 +24,7 @@
   --color-text-tertiary: #888;
 }
 
+/* بازنویسی متغیرها برای تم روشن */
 [data-theme="light"] {
   --color-bg: #ffffff;
   --color-text: #000000;
@@ -35,6 +40,7 @@
   --color-text-tertiary: #888;
 }
 
+/* استایل‌های پایه برای بدنه صفحه */
 body {
   background: var(--color-bg);
   color: var(--color-text);
@@ -43,7 +49,7 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
-/* Hide scrollbars */
+/* مخفی کردن اسکرول‌بار در همه مرورگرها */
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -66,6 +72,7 @@ body::before {
   transition: box-shadow var(--transition);
 }
 
+/* کلاس‌های کمکی برای تعیین فونت فارسی و لاتین */
 .farsi-font {
   font-family: var(--font-farsi) !important;
 }
@@ -74,6 +81,7 @@ body::before {
   font-family: var(--font-latin) !important;
 }
 
+/* ساختار اصلی چیدمان برنامه */
 .app-layout {
   display: flex;
   flex-direction: column;
@@ -83,9 +91,10 @@ body::before {
 }
 
 .app-header {
-  display: none; /* Hide old header */
+  display: none; /* هدر قدیمی مخفی شده است */
 }
 
+/* --- منوی کناری (Side Navigation) برای دسکتاپ --- */
 .side-navigation {
   position: fixed;
   left: 0;
@@ -205,6 +214,7 @@ body::before {
   transform: scale(1.1);
 }
 
+/* --- منوی پایینی (Bottom Navigation) برای موبایل --- */
 .bottom-navigation {
   display: none;
   position: fixed;
@@ -271,7 +281,7 @@ body::before {
   padding: 32px;
 }
 
-/* Floating Action Button for Add Post */
+/* دکمه شناور برای افزودن پست (FAB) */
 .fab-button {
   position: fixed;
   right: 24px;
@@ -300,21 +310,20 @@ body::before {
   left: 24px;
 }
 
-/* Update add comment button position */
+/* موقعیت دکمه افزودن کامنت */
 .add-comment-btn {
   position: fixed;
-  right: 88px; /* Move it to the left of the add post button */
+  right: 88px; 
   bottom: 88px;
   z-index: 98;
 }
 
-/* Add RTL support */
 [dir="rtl"] .add-comment-btn {
   right: auto;
   left: 88px;
 }
 
-/* Mobile responsive adjustments */
+/* تنظیمات واکنش‌گرا برای موبایل */
 @media (max-width: 768px) {
   .fab-button {
     bottom: 80px;
@@ -411,11 +420,10 @@ body::before {
 
 .main-nav {
   display: flex;
-  justify-content: center; /* Center the tabs */
+  justify-content: center;
   align-items: center;
   gap: clamp(20px, 5vw, 40px);
-  width: 100%; /* Ensure full space usage */
-  /* Removed flex-grow: 1 to avoid stretching */
+  width: 100%;
 }
 
 .header-actions {
@@ -1299,13 +1307,13 @@ body::before {
   backdrop-filter: blur(10px);
 }
 
-/* Add RTL support for the button */
+/* پشتیبانی از زبان‌های راست به چپ */
 [dir="rtl"] .add-comment-btn {
   right: auto;
   left: 88px;
 }
 
-/* Update mobile responsiveness */
+/* واکنش‌گرایی برای موبایل */
 @media (max-width: 768px) {
   .fab-button {
     bottom: 100px;
@@ -1323,7 +1331,6 @@ body::before {
   }
 }
 
-/* Update hover effect */
 .add-comment-btn:hover {
   transform: translateY(-4px) scale(1.05);
   box-shadow: 0 12px 40px rgba(255, 0, 122, 0.4);
@@ -1333,7 +1340,6 @@ body::before {
   transform: translateY(0);
 }
 
-/* Update icon size */
 .add-comment-btn svg {
   width: 18px;
   height: 18px;
@@ -1596,7 +1602,6 @@ body::before {
   animation: fadeIn 0.3s ease;
 }
 
-/* Add these new styles at the end of your CSS file */
 .page-wrapper {
   width: 100%;
   max-width: 1200px;
@@ -1635,7 +1640,6 @@ body::before {
   }
 }
 
-/* Update navigation styles */
 .bottom-nav-link {
   display: flex;
   flex-direction: column;
@@ -1652,7 +1656,6 @@ body::before {
   font-family: var(--font-farsi);
 }
 
-/* Update mobile nav footer styles */
 @media (max-width: 1024px) {
   .nav-footer {
     display: flex;
@@ -1671,13 +1674,11 @@ body::before {
     margin: 0;
   }
 
-  /* Show profile button in bottom nav */
   .bottom-nav-link.profile-link {
     display: flex;
   }
 }
 
-/* Add styles for profile link */
 .bottom-nav-link.profile-link {
   position: relative;
 }
@@ -1742,7 +1743,6 @@ body::before {
   height: 24px;
 }
 
-/* Badge Progress Styles */
 .badge-progress {
   padding: 16px 24px;
   background: linear-gradient(
@@ -1821,7 +1821,6 @@ body::before {
   text-align: center;
 }
 
-/* User Badge Styles */
 .user-badge {
   display: inline-flex;
   align-items: center;
@@ -1853,82 +1852,79 @@ body::before {
   gap: 6px;
 }
 
-/* Ensure footer is visible in mobile view */
 @media (max-width: 1024px) {
   .footer {
-    position: relative; /* Change to relative to avoid overlap with bottom-navigation */
-    margin-bottom: 80px; /* Add margin to clear bottom-navigation (64px height + padding) */
-    z-index: 5; /* Ensure footer is below bottom-navigation (z-index: 100) */
+    position: relative; 
+    margin-bottom: 80px; 
+    z-index: 5; 
   }
 }
 
-/* Fix profile page alignments in mobile view */
 @media (max-width: 768px) {
   .profile-container {
-    padding: 16px; /* Reduce padding for smaller screens */
-    margin: 80px auto 80px; /* Adjust margin to account for bottom-navigation and footer */
-    max-width: 100%; /* Ensure container fits within viewport */
+    padding: 16px;
+    margin: 80px auto 80px;
+    max-width: 100%;
     box-sizing: border-box;
   }
 
   .profile-layout {
-    grid-template-columns: 1fr; /* Switch to single-column layout */
-    gap: 24px; /* Reduce gap between sections */
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .profile-info-section {
-    border-right: none; /* Remove right border in mobile view */
-    border-bottom: 2px solid var(--color-border); /* Add bottom border for separation */
-    padding: 16px; /* Reduce padding */
+    border-right: none;
+    border-bottom: 2px solid var(--color-border);
+    padding: 16px;
     align-items: center;
   }
 
   [dir="rtl"] .profile-info-section {
-    border-left: none; /* Remove left border in RTL mode */
-    border-bottom: 2px solid var(--color-border); /* Consistent bottom border */
+    border-left: none;
+    border-bottom: 2px solid var(--color-border);
   }
 
   .profile-content-section {
-    padding: 0; /* Remove extra padding to fit content */
+    padding: 0;
   }
 
   .profile-nav {
-    gap: 16px; /* Reduce gap between tabs */
-    justify-content: center; /* Center tabs */
+    gap: 16px;
+    justify-content: center;
   }
 
   .profile-tab {
-    font-size: 16px; /* Slightly smaller font size for tabs */
-    padding: 6px 12px; /* Adjust padding for smaller screens */
+    font-size: 16px;
+    padding: 6px 12px;
   }
 
   .profile-posts .post-list {
-    grid-template-columns: 1fr; /* Single column for posts */
-    padding: 16px; /* Adjust padding */
+    grid-template-columns: 1fr;
+    padding: 16px;
   }
 
   .post-card {
-    margin: 0; /* Remove extra margins to keep within viewport */
+    margin: 0;
   }
 }
 
-/* Additional adjustments for very small screens */
 @media (max-width: 480px) {
   .profile-container {
-    padding: 12px; /* Further reduce padding */
+    padding: 12px;
   }
 
   .profile-name {
-    font-size: 20px; /* Smaller font size for name */
+    font-size: 20px;
   }
 
   .profile-picture-container .cl-userButtonAvatarBox {
-    width: 100px !important; /* Slightly smaller profile picture */
+    width: 100px !important;
     height: 100px !important;
   }
 
   .sign-out-button {
-    padding: 10px 20px; /* Adjust button padding */
-    font-size: 14px; /* Smaller font size */
+    padding: 10px 20px;
+    font-size: 14px;
   }
 }
