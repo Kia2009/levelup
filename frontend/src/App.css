@@ -409,16 +409,28 @@ body::before {
 /* Main content area */
 .page-container {
   width: 100%;
-  min-height: 100vh;
-  transition: opacity 0.3s ease;
-  opacity: 1;
-  background: var(--color-bg);
-  margin-left: 240px;
-  padding-bottom: 64px; /* Space for fixed footer on desktop */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 64px;
   flex-grow: 1;
   box-sizing: border-box;
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    margin-left: 240px; /* اندازه نوار کناری */
+    max-width: calc(100% - 240px); /* حذف فضای sidebar از عرض کلی */
+    padding: 0 32px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* فقط افقی وسط باشه، نه عمودی */
+  }
 }
 
 .page-container.loading {
@@ -433,10 +445,12 @@ body::before {
   animation: fadeIn 0.3s ease;
   width: 100%;
   box-sizing: border-box;
+  align-items: center;
 }
 
 .main-feed {
   padding: 24px;
+  align-items: center;
 }
 
 /* Updated Settings Page Styling */
@@ -453,6 +467,7 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  align-items: center;
 }
 
 .setting-row {
@@ -583,6 +598,7 @@ body::before {
   box-sizing: border-box;
   margin: 0 auto;
   max-width: 1200px;
+  align-items: center;
 }
 
 .loading-message,
@@ -598,6 +614,7 @@ body::before {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
   padding: 20px;
+  align-items: center;
 }
 
 .profile-posts {
@@ -607,12 +624,14 @@ body::before {
 @media (max-width: 600px) {
   .post-list {
     grid-template-columns: minmax(280px, 1fr);
+    align-items: center;
   }
 }
 
 @media (min-width: 1200px) {
   .post-list {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    align-items: center;
   }
 }
 
@@ -1119,6 +1138,7 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: center;
 }
 
 .comment-item {
@@ -1433,6 +1453,7 @@ body::before {
   margin: 0 auto;
   padding: 0 24px;
   box-sizing: border-box;
+  align-items: center;
 }
 
 .content-area {
@@ -1623,6 +1644,7 @@ body::before {
   .page-container {
     margin-left: 0; /* Remove side navigation margin */
     padding-bottom: 64px; /* Space for bottom navigation */
+    align-items: center;
   }
 
   .content-area {
@@ -1750,6 +1772,7 @@ body::before {
   }
   .post-page-container {
     padding-bottom: 120px; /* Keep consistent bottom padding for FAB/Add Comment */
+    align-items: center;
   }
 }
 
@@ -1757,6 +1780,7 @@ body::before {
 @media (max-width: 480px) {
   .main-feed {
     padding: 12px;
+    align-items: center;
   }
   .post-card {
     padding: 20px;

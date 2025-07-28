@@ -37,7 +37,7 @@ app = FastAPI(
 # تنظیمات CORS برای اجازه دادن به همه مبداها
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("VERCEL_URL")],  # Replace with your Vercel URL
+    allow_origins=[os.environ.get("VERCEL_URL"), "*"],  # Replace with your Vercel URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
