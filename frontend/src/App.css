@@ -599,6 +599,7 @@ body::before {
   margin: 0 auto;
   max-width: 1200px;
   align-items: center;
+  align-content: center;
 }
 
 .loading-message,
@@ -1027,10 +1028,12 @@ body::before {
   width: 100%;
   padding: 20px 0 160px 0; /* Increased padding-bottom to ensure space for FAB/footer */
   margin-top: 20px;
+  align-items: center;
 }
 
 .post-feed-scroll::-webkit-scrollbar {
   display: none;
+  align-items: center;
 }
 
 [data-lang="fa"] body,
@@ -1709,6 +1712,7 @@ body::before {
   .post-list {
     grid-template-columns: minmax(280px, 1fr);
     padding: 16px;
+    align-items: center;
   }
 
   .profile-layout {
@@ -1769,6 +1773,7 @@ body::before {
   }
   .post-feed-scroll {
     padding-bottom: 120px; /* Keep consistent bottom padding for FAB/Add Comment */
+    align-items: center;
   }
   .post-page-container {
     padding-bottom: 120px; /* Keep consistent bottom padding for FAB/Add Comment */
@@ -1779,7 +1784,7 @@ body::before {
 /* From 480px down (inclusive) - very small screens */
 @media (max-width: 480px) {
   .main-feed {
-    padding: 12px;
+    padding: 0px;
     align-items: center;
   }
   .post-card {
@@ -1803,6 +1808,6 @@ body::before {
     padding: 24px;
   }
   .content-area {
-    padding: 80px 12px 120px; /* Adjusted padding for very small screens */
+    padding: 0px 0px 120px; /* Adjusted padding for very small screens */
   }
 }
