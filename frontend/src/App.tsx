@@ -103,7 +103,7 @@ const TEXT = {
   },
 };
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface PostDisponivel {
   id: string;
@@ -482,6 +482,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("feed");
+            window.history.pushState(null, "", "/");
           }}
         >
           <svg viewBox='0 0 24 24'>
@@ -578,6 +579,7 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("feed");
+            window.history.pushState(null, "", "/");
           }}
         >
           <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
@@ -865,23 +867,29 @@ function ShopPage() {
   const { lang } = useLang();
 
   return (
-    <main className='main-feed'>
-      <header className='main-header'>
-        <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
-          {TEXT[lang].shop}
-        </h1>
-      </header>
-      <div className='about-content'>
-        <h2 className={lang === "fa" ? "farsi-font" : "latin-font"}>
-          {lang === "fa" ? "به زودی..." : "Coming Soon..."}
-        </h2>
-        <p className={lang === "fa" ? "farsi-font" : "latin-font"}>
-          {lang === "fa"
-            ? "فروشگاه ما به زودی راه‌اندازی خواهد شد. منتظر بمانید!"
-            : "Our shop will be launching soon. Stay tuned!"}
-        </p>
+    <div className='page-wrapper'>
+      {" "}
+      {/* تغییر از <main className='main-feed'> */}
+      <div className='content-area'>
+        {" "}
+        {/* اضافه کردن content-area */}
+        <header className='main-header'>
+          <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+            {TEXT[lang].shop}
+          </h1>
+        </header>
+        <div className='about-content'>
+          <h2 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+            {lang === "fa" ? "به زودی..." : "Coming Soon..."}
+          </h2>
+          <p className={lang === "fa" ? "farsi-font" : "latin-font"}>
+            {lang === "fa"
+              ? "فروشگاه ما به زودی راه‌اندازی خواهد شد. منتظر بمانید!"
+              : "Our shop will be launching soon. Stay tuned!"}
+          </p>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
 
