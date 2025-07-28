@@ -1830,7 +1830,14 @@ function PostPage({
   return (
     <main className='main-feed'>
       <header className='main-header'>
-        <button onClick={() => setSelectedPostId(null)} className='back-button'>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            setSelectedPostId(null);
+            window.history.pushState(null, "", "/");
+          }}
+          className='back-button'
+        >
           {lang === "fa" ? "بازگشت به فید" : "Back to Feed"}
         </button>
       </header>

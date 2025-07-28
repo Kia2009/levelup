@@ -435,16 +435,8 @@ body::before {
   box-sizing: border-box;
 }
 
-/* Fixed: Center the main feed and post list for desktop */
 .main-feed {
   padding: 24px;
-  max-width: 900px; /* Limit width to keep it centered and readable */
-  margin: 0 auto; /* Center the main feed content */
-}
-/* Ensure post-list also respects centering within its parent */
-.post-list {
-  margin: 0 auto; /* Center the grid of posts */
-  max-width: 1200px; /* Keep its max-width */
 }
 
 /* Updated Settings Page Styling */
@@ -589,7 +581,7 @@ body::before {
   padding: 24px;
   width: 100%;
   box-sizing: border-box;
-  margin: 0 auto; /* Ensure this is centered within its parent */
+  margin: 0 auto;
   max-width: 1200px;
 }
 
@@ -1012,10 +1004,9 @@ body::before {
   border-color: transparent;
 }
 
-/* Increased padding-bottom for content areas to give space for FAB/footer */
 .post-feed-scroll {
   width: 100%;
-  padding: 20px 0 180px 0; /* Increased from 160px */
+  padding: 20px 0 160px 0; /* Increased padding-bottom to ensure space for FAB/footer */
   margin-top: 20px;
 }
 
@@ -1037,12 +1028,11 @@ body::before {
   font-family: var(--font-farsi);
 }
 
-/* Increased padding-bottom for content areas to give space for FAB/footer */
 .post-page-container {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 80px 24px 180px; /* Increased from 160px */
+  padding: 80px 24px 160px; /* Increased padding-bottom to ensure space for FAB/footer */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1614,7 +1604,7 @@ body::before {
 @media (max-width: 1024px) {
   .footer {
     position: relative;
-    margin-bottom: 64px; /* Space for bottom nav */
+    margin-bottom: 64px;
     z-index: 5;
   }
 }
@@ -1636,23 +1626,23 @@ body::before {
   }
 
   .content-area {
-    padding: 100px 16px 160px; /* Base padding for mobile, increased for buttons + nav + footer */
+    /* Increased padding-bottom for FAB/Add Comment in larger mobile views */
+    padding: 100px 16px 120px; /* Base padding for mobile, adjusted further below */
   }
 
   /*
     Critical adjustments for FAB and Add Comment buttons on mobile.
     We need to ensure they are above the bottom navigation (64px height)
     AND have enough clearance from the bottom edge.
-    Let's aim for them to be 32px above the bottom nav.
-    So, 64px (nav height) + 32px = 96px from the bottom.
+    Let's aim for them to be 24px above the bottom nav.
+    So, 64px (nav height) + 24px = 88px from the bottom.
   */
   .fab-button {
-    bottom: 96px; /* Adjusted to be higher */
+    bottom: calc(64px + 24px); /* bottom nav height + desired clearance */
     right: 16px;
     width: 50px;
     height: 50px;
     border-radius: 12px;
-    z-index: 99; /* Ensure it's above content but below modals */
   }
   .fab-button .fab-text {
     display: none;
@@ -1669,12 +1659,11 @@ body::before {
   }
 
   .add-comment-btn {
-    bottom: 96px; /* Adjusted to be higher */
+    bottom: calc(64px + 24px); /* Same calculation for consistent placement */
     right: 80px;
     padding: 10px 18px;
     font-size: 0.9rem;
     gap: 6px;
-    z-index: 99; /* Ensure it's above content but below modals */
   }
   /* RTL adjustment for mobile buttons */
   [dir="rtl"] .fab-button {
@@ -1687,11 +1676,9 @@ body::before {
   }
 
   /* Footer on mobile */
-  /* This needs to be consistent across mobile media queries */
   .footer {
-    position: relative; /* Must be relative on mobile */
-    margin-bottom: 64px; /* Space for fixed bottom navigation */
-    /* z-index should be lower than fixed buttons if any */
+    position: relative;
+    margin-bottom: 64px; /* Space for bottom navigation */
   }
 }
 
@@ -1756,13 +1743,13 @@ body::before {
   }
 
   .content-area {
-    padding: 100px 16px 160px; /* Keep consistent bottom padding for FAB/Add Comment */
+    padding: 100px 16px 120px; /* Keep consistent bottom padding for FAB/Add Comment */
   }
   .post-feed-scroll {
-    padding-bottom: 160px; /* Keep consistent bottom padding for FAB/Add Comment */
+    padding-bottom: 120px; /* Keep consistent bottom padding for FAB/Add Comment */
   }
   .post-page-container {
-    padding-bottom: 160px; /* Keep consistent bottom padding for FAB/Add Comment */
+    padding-bottom: 120px; /* Keep consistent bottom padding for FAB/Add Comment */
   }
 }
 
@@ -1792,6 +1779,6 @@ body::before {
     padding: 24px;
   }
   .content-area {
-    padding: 80px 12px 160px; /* Adjusted padding for very small screens */
+    padding: 80px 12px 120px; /* Adjusted padding for very small screens */
   }
 }
