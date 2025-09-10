@@ -34,10 +34,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# تنظیمات CORS برای اجازه دادن به همه مبداها
+# پیکربندی CORS برای اجازه دادن به درخواست‌ها از دامنه‌های مشخص
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("VERCEL_URL")],  # Replace with your Vercel URL
+    allow_origins=[os.environ.get("VERCEL_URL", "*")],  # Replace with your Vercel URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -402,7 +402,7 @@ def get_my_posts(user: dict = Depends(get_current_user)):
 def new_user(user: dict = Depends(get_current_user)):
     """
     یک کاربر جدید به پایگاه داده اضافه می‌کند. اگر کاربر وجود داشته باشد، اطلاعاتش را برمی‌گرداند.
-    """
+    """  # noqa: E501
     user_id = user.get("sub")
 
     # بررسی وجود کاربر
