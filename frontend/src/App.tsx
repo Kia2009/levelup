@@ -1,4 +1,10 @@
-import React, { useEffect, useState, createContext, useContext } from "react";
+import React, {
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 import "./App.css";
 import {
   SignedIn,
@@ -28,6 +34,8 @@ const TEXT = {
       "Interactive social feed: Share insights, ask questions, and connect with peers.",
       "Earn rewards: Collect coins and unlock exclusive badges as you progress.",
       "Real-time collaboration: Work together on projects and study groups.",
+      "Please send your bug reports to this email:",
+      "levelup.support@gmail.com",
     ],
     createdBy: "Created by KGH & Taha",
     allRights: "All rights reserved. LevelUp",
@@ -55,7 +63,27 @@ const TEXT = {
     alertPostDeleted: "Post deleted successfully!",
     alertCommentLiked: "Comment liked!",
     alertCommentUnliked: "Comment unliked!",
+    alertProductCreated: "Notebook listed for sale!",
+    alertProductBought: "Purchase successful! Check your library.",
     profile: "Profile",
+    marketplace: "Marketplace",
+    myLibrary: "My Library",
+    sellItem: "Sell Notebook",
+    sellItemTitle: "Sell Your Notebook",
+    productTitle: "Notebook Title",
+    productDescription: "Description",
+    productPrice: "Price (IQ Coins)",
+    productFileUrl: "File URL (e.g., Google Drive, Dropbox)",
+    sell: "List for Sale",
+    buy: "Buy",
+    download: "Download",
+    confirmPurchase: "Confirm Purchase",
+    confirmPurchaseMsg:
+      "Are you sure you want to buy this notebook for {price} IQ Coins?",
+    cancel: "Cancel",
+    noProducts: "The marketplace is empty. Sell something!",
+    noLibraryItems: "You haven't bought any notebooks yet.",
+    seller: "Seller",
   },
   fa: {
     home: "خانه",
@@ -73,6 +101,8 @@ const TEXT = {
       "فید اجتماعی تعاملی: بینش‌ها را به اشتراک بگذارید، سوال بپرسید و با همتایان خود ارتباط برقرار کنید.",
       "کسب پاداش: با پیشرفت، سکه‌ها را جمع‌آوری کرده و نشان‌های انحصاری را باز کنید.",
       "همکاری بلادرنگ: روی پروژه‌ها و گروه‌های مطالعه با یکدیگر کار کنید.",
+      "گذارش مشکلات فنی را به آدرس ایمیل زیر ارسال کنید:",
+      "levelup.support@gmail.com",
     ],
     createdBy: "ساخته شده توسط KGH و Taha",
     allRights: "تمام حقوق محفوظ است. LevelUp",
@@ -100,6 +130,25 @@ const TEXT = {
     alertPostDeleted: "پست با موفقیت حذف شد!",
     alertCommentLiked: "نظر لایک شد!",
     alertCommentUnliked: "لایک نظر لغو شد!",
+    alertProductCreated: "جزوه برای فروش ثبت شد!",
+    alertProductBought: "خرید موفقیت‌آمیز بود! کتابخانه خود را بررسی کنید.",
+    marketplace: "فروشگاه",
+    myLibrary: "کتابخانه من",
+    sellItem: "فروش جزوه",
+    sellItemTitle: "جزوه خود را بفروشید",
+    productTitle: "عنوان جزوه",
+    productDescription: "توضیحات",
+    productPrice: "قیمت (سکه IQ)",
+    productFileUrl: "لینک فایل (مثلا گوگل درایو)",
+    sell: "ثبت برای فروش",
+    buy: "خرید",
+    download: "دانلود",
+    confirmPurchase: "تایید خرید",
+    confirmPurchaseMsg: "آیا از خرید این جزوه به قیمت {price} سکه IQ مطمئن هستید؟",
+    cancel: "انصراف",
+    noProducts: "فروشگاه خالی است. شما اولین نفر باشید!",
+    noLibraryItems: "شما هنوز هیچ جزوه‌ای نخریده‌اید.",
+    seller: "فروشنده",
   },
 };
 
@@ -125,6 +174,21 @@ interface CommentDisponivel {
   created_at: string;
   likes: string[];
   views: string[];
+}
+
+interface Product {
+  id: number;
+  created_at: string;
+  seller_id: string;
+  seller_name: string;
+  title: string;
+  description: string;
+  price: number;
+  file_url: string;
+}
+
+interface LibraryItem {
+  product: Product;
 }
 
 function PostCard({
@@ -515,9 +579,18 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
             setPage("shop");
           }}
         >
-          <svg viewBox='0 0 24 24'>
-            <path d='M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM7 6V19H17V6H7Z' />
+          <svg
+            fill='none'
+            stroke='currentColor'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth='2'
+            viewBox='0 0 24 24'
+          >
+            <path d='M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18' />
+            <path d='M16 10a4 4 0 01-8 0' />
           </svg>
+
           <span>{TEXT[lang].shop}</span>
         </a>
 
@@ -542,7 +615,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
 
 function BottomNavigation({ currentPage, setPage }: NavProps) {
   const { lang } = useLang();
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
   const [coins, setCoins] = useState(0);
 
@@ -564,9 +637,12 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
         }
       }
     };
-
-    fetchUserCoins();
-  }, [user?.id]);
+    if (isSignedIn) {
+      fetchUserCoins();
+      const interval = setInterval(fetchUserCoins, 10000); // Refresh coins every 10 seconds
+      return () => clearInterval(interval);
+    }
+  }, [user?.id, isSignedIn]);
 
   return (
     <nav className='bottom-navigation'>
@@ -627,11 +703,21 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
             setPage("shop");
           }}
         >
-          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+          <svg
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            strokeWidth={2}
+          >
             <path
               strokeLinecap='round'
               strokeLinejoin='round'
-              d='M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM7 6V19H17V6H7Z'
+              d='M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18'
+            />
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M16 10a4 4 0 01-8 0'
             />
           </svg>
           <span>{TEXT[lang].shop}</span>
@@ -676,17 +762,18 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  const { lang } = useLang();
 
   const { user } = useUser();
   const { getToken } = useAuth();
 
-  const showAlert = (message: string) => {
+  const { lang } = useLang();
+
+  const showAlert = useCallback((message: string) => {
     setAlertMessage(message);
     setTimeout(() => {
       setAlertMessage(null);
     }, 3300);
-  };
+  }, []);
 
   useEffect(() => {
     Promise.all([new Promise((resolve) => setTimeout(resolve, 500))]).then(
@@ -734,7 +821,7 @@ function App() {
     setSelectedPostId(null);
   };
 
-  const addNewUser = async () => {
+  const addNewUser = useCallback(async () => {
     try {
       const token = await getToken({ template: "fullname" });
       const response = await fetch(`${API_URL}/newuser`, {
@@ -754,13 +841,13 @@ function App() {
     } catch (error) {
       console.error("Error creating user:", error);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     if (user) {
       addNewUser();
     }
-  }, [user]);
+  }, [user, addNewUser]);
 
   if (pageLoading) {
     return <LoadingBar isLoading={true} />;
@@ -772,7 +859,7 @@ function App() {
         <div className='app-layout'>
           <SideNavigation currentPage={page} setPage={handlePageChange} />
           <BottomNavigation currentPage={page} setPage={handlePageChange} />
-          {!selectedPostId && (
+          {!selectedPostId && page === "feed" && (
             <button className='fab-button' onClick={() => setShowModal(true)}>
               <div className='fab-icon'>
                 <svg viewBox='0 0 24 24'>
@@ -847,7 +934,7 @@ function MainArea({
         )}
         {page === "about" && <AboutPage />}
         {page === "settings" && <SettingsPage />}
-        {page === "shop" && <ShopPage />}
+        {page === "shop" && <ShopPage showAlert={showAlert} />}
         {showModal && (
           <CreatePostModal
             onClose={() => setShowModal(false)}
@@ -863,32 +950,343 @@ function MainArea({
   );
 }
 
-function ShopPage() {
+// ===== SHOP COMPONENTS =====
+
+function SellProductModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (product: Product) => void;
+}) {
   const { lang } = useLang();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { getToken } = useAuth();
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !description || !price || !fileUrl) {
+      setError(
+        lang === "fa"
+          ? "تمام فیلدها الزامی هستند."
+          : "All fields are required."
+      );
+      return;
+    }
+    if (parseInt(price) <= 0) {
+      setError(lang === "fa" ? "قیمت باید مثبت باشد." : "Price must be positive.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    const token = await getToken({ template: "fullname" });
+    try {
+      const res = await fetch(`${API_URL}/shop/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          price: parseInt(price),
+          file_url: fileUrl,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to create product");
+      }
+      const product = await res.json();
+      onCreated(product);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className='page-wrapper'>
-      {" "}
-      {/* تغییر از <main className='main-feed'> */}
-      <div className='content-area'>
-        {" "}
-        {/* اضافه کردن content-area */}
-        <header className='main-header'>
-          <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
-            {TEXT[lang].shop}
-          </h1>
-        </header>
-        <div className='about-content'>
-          <h2 className={lang === "fa" ? "farsi-font" : "latin-font"}>
-            {lang === "fa" ? "به زودی..." : "Coming Soon..."}
-          </h2>
-          <p className={lang === "fa" ? "farsi-font" : "latin-font"}>
-            {lang === "fa"
-              ? "فروشگاه ما به زودی راه‌اندازی خواهد شد. منتظر بمانید!"
-              : "Our shop will be launching soon. Stay tuned!"}
-          </p>
-        </div>
+    <div className='popup-backdrop' onClick={onClose}>
+      <form
+        className='popup-card create-modal sell-modal no-scroll'
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={handleCreate}
+      >
+        <button className='popup-close' onClick={onClose} type='button'>
+          ×
+        </button>
+        <h2>{TEXT[lang].sellItemTitle}</h2>
+        <input
+          type='text'
+          placeholder={TEXT[lang].productTitle}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+        <textarea
+          placeholder={TEXT[lang].productDescription}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+        />
+        <input
+          type='number'
+          placeholder={TEXT[lang].productPrice}
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+          min='1'
+        />
+        <input
+          type='url'
+          placeholder={TEXT[lang].productFileUrl}
+          value={fileUrl}
+          onChange={(e) => setFileUrl(e.target.value)}
+          required
+        />
+        <button type='submit' disabled={loading}>
+          {loading ? TEXT[lang].posting : TEXT[lang].sell}
+        </button>
+        {error && <div className='error'>{error}</div>}
+      </form>
+    </div>
+  );
+}
+
+function ProductCard({
+  product,
+  onBuy,
+  lang,
+}: {
+  product: Product;
+  onBuy: (product: Product) => void;
+  lang: "en" | "fa";
+}) {
+  const [sellerCoins, setSellerCoins] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchSellerCoins = async () => {
+      try {
+        const res = await fetch(`${API_URL}/users/${product.seller_id}/coins`);
+        if (res.ok) {
+          const coins = await res.json();
+          setSellerCoins(coins);
+        }
+      } catch (err) {
+        console.error("Failed to fetch seller coins:", err);
+      }
+    };
+
+    fetchSellerCoins();
+  }, [product.seller_id]);
+
+  return (
+    <div className='product-card'>
+      <div className='product-seller'>
+        <span>{TEXT[lang].seller}:</span>
+        <UserBadge
+          coins={sellerCoins}
+          lang={lang}
+          size='small'
+          showTooltip={true}
+          creator={product.seller_name}
+        />
       </div>
+      <h3 className='product-title'>{product.title}</h3>
+      <p className='product-description'>{product.description}</p>
+      <div className='product-footer'>
+        <div className='product-price'>
+          <CoinIcon />
+          <span>{product.price}</span>
+        </div>
+        <button className='buy-btn' onClick={() => onBuy(product)}>
+          {TEXT[lang].buy}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
+  const { lang } = useLang();
+  const { getToken } = useAuth();
+  const [activeTab, setActiveTab] = useState<"marketplace" | "library">(
+    "marketplace"
+  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showSellModal, setShowSellModal] = useState(false);
+
+  const fetchMarketplace = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/shop/products`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      setProducts(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchLibrary = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const token = await getToken({ template: "fullname" });
+      const res = await fetch(`${API_URL}/shop/my-library`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch library");
+      const data = await res.json();
+      setLibraryItems(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    if (activeTab === "marketplace") {
+      fetchMarketplace();
+    } else {
+      fetchLibrary();
+    }
+  }, [activeTab, fetchMarketplace, fetchLibrary]);
+
+  const handleBuy = async (product: Product) => {
+    const confirmed = window.confirm(
+      TEXT[lang].confirmPurchaseMsg.replace("{price}", product.price.toString())
+    );
+    if (!confirmed) return;
+
+    try {
+      const token = await getToken({ template: "fullname" });
+      const res = await fetch(`${API_URL}/shop/products/${product.id}/buy`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Purchase failed");
+      }
+      showAlert(TEXT[lang].alertProductBought);
+      fetchMarketplace(); // Refresh marketplace to potentially remove bought item
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  return (
+    <div className='shop-container'>
+      <header className='main-header'>
+        <div className='shop-header'>
+          <h1>{TEXT[lang].shop}</h1>
+          <button
+            className='sell-item-btn'
+            onClick={() => setShowSellModal(true)}
+          >
+            <span>{TEXT[lang].sellItem}</span>
+            <svg
+              viewBox='0 0 24 24'
+              width='20'
+              height='20'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth={2.5}
+            >
+              <path d='M12 5v14M5 12h14' />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <nav className='shop-nav'>
+        <button
+          className={`shop-tab ${
+            activeTab === "marketplace" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("marketplace")}
+        >
+          {TEXT[lang].marketplace}
+        </button>
+        <button
+          className={`shop-tab ${activeTab === "library" ? "active" : ""}`}
+          onClick={() => setActiveTab("library")}
+        >
+          {TEXT[lang].myLibrary}
+        </button>
+      </nav>
+
+      {error && <div className='error-message'>{error}</div>}
+
+      {loading ? (
+        <div className='loading-message'>{TEXT[lang].loading}</div>
+      ) : activeTab === "marketplace" ? (
+        products.length > 0 ? (
+          <div className='product-list'>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onBuy={handleBuy}
+                lang={lang}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className='no-posts-message'>{TEXT[lang].noProducts}</div>
+        )
+      ) : libraryItems.length > 0 ? (
+        <div className='library-list'>
+          {libraryItems.map((item) => (
+            <div key={item.product.id} className='library-item'>
+              <div className='library-item-info'>
+                <h3 className='product-title'>{item.product.title}</h3>
+                <div className='product-seller'>
+                  <span>
+                    {TEXT[lang].seller}: {item.product.seller_name}
+                  </span>
+                </div>
+              </div>
+              <a
+                href={item.product.file_url}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='download-btn'
+              >
+                {TEXT[lang].download}
+              </a>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className='no-posts-message'>{TEXT[lang].noLibraryItems}</div>
+      )}
+
+      {showSellModal && (
+        <SellProductModal
+          onClose={() => setShowSellModal(false)}
+          onCreated={(_product) => {
+            setShowSellModal(false);
+            showAlert(TEXT[lang].alertProductCreated);
+            fetchMarketplace(); // Refresh list after creating
+          }}
+        />
+      )}
     </div>
   );
 }

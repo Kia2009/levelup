@@ -1,5 +1,0 @@
-fastapi
-python-dotenv
-python-jose[cryptography]
-httpx
-supabase

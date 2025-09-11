@@ -57,6 +57,20 @@ def _update_user_coins(user_id: str, amount: int):
         supabase.rpc(
             "update_coins", {"user_id_in": user_id, "amount": amount}
         ).execute()
+        # بررسی موجودی کافی
+        result = (
+            supabase.table("users")
+            .select("coins")
+            .eq("user_id", user_id)
+            .single()
+            .execute()
+        )
+        if result.data and result.data["coins"] < 0:
+            # برگرداندن تراکنش در صورت منفی شدن موجودی
+            supabase.rpc(
+                "update_coins", {"user_id_in": user_id, "amount": -amount}
+            ).execute()
+            raise Exception("موجودی سکه کافی نیست")
     except Exception as e:
         # در صورت بروز خطا، آن را لاگ می‌گیریم ولی برنامه متوقف نمی‌شود
         print(f"خطا در به‌روزرسانی سکه برای کاربر {user_id}: {e}")
