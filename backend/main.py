@@ -1,6 +1,8 @@
 # main.py
 
+import mimetypes
 import os
+import uuid
 from typing import List, Optional
 
 # وارد کردن کتابخانههای مورد نیاز
@@ -9,30 +11,28 @@ from dotenv import load_dotenv  # برای خواندن متغیرهای محی�
 from fastapi import (  # فریمورک اصلی برای ساخت API
     Depends,
     FastAPI,
-    HTTPException,
-    status,
     File,
-    UploadFile,
     Form,
+    HTTPException,
+    UploadFile,
+    status,
 )
 from fastapi.middleware.cors import (
     CORSMiddleware,  # برای مدیریت درخواستهای Cross-Origin
 )
 from schemas import (  # مدلهای داده Pydantic
+    AdminUser,
     Comment,
     CommentCreate,
+    LeaderboardEntry,
     PostCreate,
     Posts,
-    User,
     Product,
     ProductCreate,
     Purchase,
-    LeaderboardEntry,
-    AdminUser,
+    User,
 )
 from supabase import Client, create_client  # کلاینت برای ارتباط با Supabase
-import uuid
-import mimetypes
 
 # بارگذاری متغیرهای محیطی
 load_dotenv()
@@ -66,7 +66,7 @@ ADMIN_EMAILS = os.environ.get("ADMIN_EMAILS", "").split(",")
 def _update_user_coins(user_id: str, amount: int):
     """سکه کاربر را بر اساس مقدار داده شده افزایش یا کاهش میدهد."""
     try:
-        # فراخوانی یک تابع در پایگاه داده برای بهروزرسانی سکهها به صورت اتمی
+        # فراخوانی یک تابع در پایگاه داده برای بهروزرسانی سکهها به صورت داخلی
         supabase.rpc(
             "update_coins", {"user_id_in": user_id, "amount": amount}
         ).execute()
@@ -424,7 +424,11 @@ def view_comment(comment_id: int, user: dict = Depends(get_current_user)):
     user_id = user.get("sub")
 
     comment_res = (
-        supabase.table("comments").select("views").eq("id", comment_id).single().execute()
+        supabase.table("comments")
+        .select("views")
+        .eq("id", comment_id)
+        .single()
+        .execute()
     )
     if not comment_res.data:
         raise HTTPException(status_code=404, detail="کامنت یافت نشد")
@@ -433,7 +437,9 @@ def view_comment(comment_id: int, user: dict = Depends(get_current_user)):
 
     if user_id not in views:
         views.append(user_id)
-        supabase.table("comments").update({"views": views}).eq("id", comment_id).execute()
+        supabase.table("comments").update({"views": views}).eq(
+            "id", comment_id
+        ).execute()
 
     full_comment = (
         supabase.table("comments").select("*").eq("id", comment_id).single().execute()
@@ -453,10 +459,7 @@ def view_comment(comment_id: int, user: dict = Depends(get_current_user)):
 def get_products():
     """لیست تمام محصولات موجود در فروشگاه را بازیابی میکند."""
     result = (
-        supabase.table("products")
-        .select("*")
-        .order("created_at", desc=True)
-        .execute()
+        supabase.table("products").select("*").order("created_at", desc=True).execute()
     )
     return result.data
 
@@ -467,62 +470,58 @@ def get_products():
     summary="آپلود فایل به استوریج",
 )
 async def upload_file(
-    file: UploadFile = File(...),
-    user: dict = Depends(get_current_user)
+    file: UploadFile = File(...), user: dict = Depends(get_current_user)
 ):
     """فایل را به Supabase Storage آپلود میکند."""
     try:
         # بررسی نوع فایل
-        allowed_types = ['application/pdf', 'application/msword', 
-                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        'text/plain', 'application/zip', 'application/x-rar-compressed']
-        
+        allowed_types = [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/plain",
+            "application/zip",
+            "application/x-rar-compressed",
+        ]
+
         if file.content_type not in allowed_types:
             raise HTTPException(
                 status_code=400,
-                detail="نوع فایل مجاز نیست. فقط PDF, Word, Text, ZIP و RAR پذیرفته میشود."
+                detail="نوع فایل مجاز نیست. فقط PDF, Word, Text, ZIP و RAR پذیرفته میشود.",  # noqa: E501
             )
-        
+
         # بررسی حجم فایل (حداکثر 50MB)
         file_content = await file.read()
         if len(file_content) > 50 * 1024 * 1024:
             raise HTTPException(
-                status_code=400,
-                detail="حجم فایل نباید بیشتر از 50 مگابایت باشد."
+                status_code=400, detail="حجم فایل نباید بیشتر از 50 مگابایت باشد."
             )
-        
+
         # ایجاد نام منحصر به فرد برای فایل
-        file_extension = file.filename.split('.')[-1] if '.' in file.filename else ''
+        file_extension = file.filename.split(".")[-1] if "." in file.filename else ""  # pyright: ignore[reportOptionalMemberAccess, reportOperatorIssue]
         unique_filename = f"{user.get('sub')}/{uuid.uuid4()}.{file_extension}"
-        
+
         # آپلود به Supabase Storage
-        result = supabase.storage.from_("notebooks").upload(
-            unique_filename,
-            file_content,
-            {"content-type": file.content_type}
-        )
-        
-        if result.error:
-            raise HTTPException(
-                status_code=500,
-                detail=f"خطا در آپلود فایل: {result.error}"
+        try:
+            result = supabase.storage.from_("notebooks").upload(
+                unique_filename, file_content, {"content-type": file.content_type}
             )
-        
+
+        except Exception as e:
+            raise HTTPException(status_code=501, detail=f"خطا در آپلود فایل: {str(e)}")
+
         # دریافت URL عمومی فایل
         public_url = supabase.storage.from_("notebooks").get_public_url(unique_filename)
-        
+
         return {
             "file_url": public_url,
             "filename": file.filename,
             "size": len(file_content),
-            "upload_progress": 100
+            "upload_progress": 100,
         }
-        
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"خطا در آپلود فایل: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"خطا در آپلود فایل: {str(e)}")
 
 
 @app.post(
@@ -533,8 +532,7 @@ async def upload_file(
     summary="ایجاد محصول جدید",
 )
 def create_product(
-    product_create: ProductCreate,
-    user: dict = Depends(get_current_user)
+    product_create: ProductCreate, user: dict = Depends(get_current_user)
 ):
     """محصول جدید برای فروش ایجاد میکند."""
     result = (
@@ -560,20 +558,16 @@ def create_product(
 def buy_product(product_id: int, user: dict = Depends(get_current_user)):
     """محصول مشخص را خریداری میکند."""
     user_id = user.get("sub")
-    
+
     # بررسی وجود محصول
     product_res = (
-        supabase.table("products")
-        .select("*")
-        .eq("id", product_id)
-        .single()
-        .execute()
+        supabase.table("products").select("*").eq("id", product_id).single().execute()
     )
     if not product_res.data:
         raise HTTPException(status_code=404, detail="محصول یافت نشد")
-    
+
     product = product_res.data
-    
+
     # بررسی اینکه کاربر قبلا این محصول را نخریده باشد
     existing_purchase = (
         supabase.table("purchases")
@@ -584,7 +578,7 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
     )
     if existing_purchase.data:
         raise HTTPException(status_code=400, detail="شما قبلا این محصول را خریدهاید")
-    
+
     # بررسی موجودی سکه کاربر
     user_coins_res = (
         supabase.table("users")
@@ -595,13 +589,13 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
     )
     if not user_coins_res.data or user_coins_res.data["coins"] < product["price"]:
         raise HTTPException(status_code=400, detail="موجودی سکه کافی نیست")
-    
+
     # کسر سکه از خریدار
-    _update_user_coins(user_id, -product["price"])
-    
+    _update_user_coins(user_id, -product["price"])  # pyright: ignore[reportArgumentType]
+
     # اضافه کردن سکه به فروشنده
     _update_user_coins(product["seller_id"], product["price"])
-    
+
     # ثبت خرید
     purchase_result = (
         supabase.table("purchases")
@@ -611,8 +605,11 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
         })
         .execute()
     )
-    
-    return {"message": "خرید با موفقیت انجام شد", "purchase_id": purchase_result.data[0]["id"]}
+
+    return {
+        "message": "خرید با موفقیت انجام شد",
+        "purchase_id": purchase_result.data[0]["id"],
+    }
 
 
 @app.get(
@@ -624,7 +621,7 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
 def get_my_library(user: dict = Depends(get_current_user)):
     """لیست محصولات خریداری شده توسط کاربر را بازیابی میکند."""
     user_id = user.get("sub")
-    
+
     # دریافت خریدها همراه با اطلاعات محصول
     result = (
         supabase.table("purchases")
@@ -633,14 +630,12 @@ def get_my_library(user: dict = Depends(get_current_user)):
         .order("created_at", desc=True)
         .execute()
     )
-    
+
     # تبدیل به فرمت مورد نظر
     library_items = []
     for purchase in result.data:
-        library_items.append({
-            "product": purchase["products"]
-        })
-    
+        library_items.append({"product": purchase["products"]})
+
     return library_items
 
 
@@ -744,15 +739,10 @@ def get_all_users(user: dict = Depends(get_current_user)):
     if not _is_admin(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="فقط ادمینها به این بخش دسترسی دارند"
+            detail="فقط ادمینها به این بخش دسترسی دارند",
         )
-    
-    result = (
-        supabase.table("users")
-        .select("*")
-        .order("coins", desc=True)
-        .execute()
-    )
+
+    result = supabase.table("users").select("*").order("coins", desc=True).execute()
     return result.data
 
 
@@ -762,23 +752,18 @@ def get_all_users(user: dict = Depends(get_current_user)):
     summary="اضافه کردن سکه به کاربر (فقط ادمین)",
 )
 def add_coins_to_user(
-    target_user_id: str,
-    amount: int,
-    user: dict = Depends(get_current_user)
+    target_user_id: str, amount: int, user: dict = Depends(get_current_user)
 ):
     """سکه به کاربر مشخص اضافه میکند (فقط ادمین)."""
     if not _is_admin(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="فقط ادمینها به این بخش دسترسی دارند"
+            detail="فقط ادمینها به این بخش دسترسی دارند",
         )
-    
+
     if amount <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="مقدار سکه باید مثبت باشد"
-        )
-    
+        raise HTTPException(status_code=400, detail="مقدار سکه باید مثبت باشد")
+
     # بررسی وجود کاربر
     target_user = (
         supabase.table("users")
@@ -789,8 +774,8 @@ def add_coins_to_user(
     )
     if not target_user.data:
         raise HTTPException(status_code=404, detail="کاربر یافت نشد")
-    
+
     # اضافه کردن سکه
     _update_user_coins(target_user_id, amount)
-    
+
     return {"message": f"{amount} سکه به کاربر {target_user_id} اضافه شد"}
