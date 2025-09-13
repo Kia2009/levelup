@@ -1,9 +1,9 @@
 # main.py
 
 import os
-from typing import List
+from typing import List, Optional
 
-# وارد کردن کتابخانه‌های مورد نیاز
+# وارد کردن کتابخانههای مورد نیاز
 from auth import get_current_user  # ماژول احراز هویت برای گرفتن اطلاعات کاربر فعلی
 from dotenv import load_dotenv  # برای خواندن متغیرهای محیطی از فایل .env
 from fastapi import (  # فریمورک اصلی برای ساخت API
@@ -11,30 +11,40 @@ from fastapi import (  # فریمورک اصلی برای ساخت API
     FastAPI,
     HTTPException,
     status,
+    File,
+    UploadFile,
+    Form,
 )
 from fastapi.middleware.cors import (
-    CORSMiddleware,  # برای مدیریت درخواست‌های Cross-Origin
+    CORSMiddleware,  # برای مدیریت درخواستهای Cross-Origin
 )
-from schemas import (  # مدل‌های داده Pydantic
+from schemas import (  # مدلهای داده Pydantic
     Comment,
     CommentCreate,
     PostCreate,
     Posts,
     User,
+    Product,
+    ProductCreate,
+    Purchase,
+    LeaderboardEntry,
+    AdminUser,
 )
 from supabase import Client, create_client  # کلاینت برای ارتباط با Supabase
+import uuid
+import mimetypes
 
 # بارگذاری متغیرهای محیطی
 load_dotenv()
 
-# نمونه‌سازی از FastAPI
+# نمونهسازی از FastAPI
 app = FastAPI(
-    title="مدیریت پست‌ها",
-    description="یک API پایه برای مدیریت پست‌های ایجاد شده توسط کاربران.",
+    title="مدیریت پستها",
+    description="یک API پایه برای مدیریت پستهای ایجاد شده توسط کاربران.",
     version="1.0.0",
 )
 
-# پیکربندی CORS برای اجازه دادن به درخواست‌ها از دامنه‌های مشخص
+# پیکربندی CORS برای اجازه دادن به درخواستها از دامنههای مشخص
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[os.environ.get("VERCEL_URL", "*")],  # Replace with your Vercel URL
@@ -43,17 +53,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# راه‌اندازی کلاینت Supabase
+# راهاندازی کلاینت Supabase
 url: str = os.environ.get("SUPABASE_URL", "")
 key: str = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(url, key)
 
+# لیست ایمیل ادمینها از متغیر محیطی
+ADMIN_EMAILS = os.environ.get("ADMIN_EMAILS", "").split(",")
+
 
 # یک تابع کمکی برای مدیریت افزایش/کاهش سکه کاربر
 def _update_user_coins(user_id: str, amount: int):
-    """سکه کاربر را بر اساس مقدار داده شده افزایش یا کاهش می‌دهد."""
+    """سکه کاربر را بر اساس مقدار داده شده افزایش یا کاهش میدهد."""
     try:
-        # فراخوانی یک تابع در پایگاه داده برای به‌روزرسانی سکه‌ها به صورت اتمی
+        # فراخوانی یک تابع در پایگاه داده برای بهروزرسانی سکهها به صورت اتمی
         supabase.rpc(
             "update_coins", {"user_id_in": user_id, "amount": amount}
         ).execute()
@@ -72,24 +85,30 @@ def _update_user_coins(user_id: str, amount: int):
             ).execute()
             raise Exception("موجودی سکه کافی نیست")
     except Exception as e:
-        # در صورت بروز خطا، آن را لاگ می‌گیریم ولی برنامه متوقف نمی‌شود
-        print(f"خطا در به‌روزرسانی سکه برای کاربر {user_id}: {e}")
+        # در صورت بروز خطا، آن را لاگ میگیریم ولی برنامه متوقف نمیشود
+        print(f"خطا در بهروزرسانی سکه برای کاربر {user_id}: {e}")
+
+
+def _is_admin(user: dict) -> bool:
+    """بررسی میکند که آیا کاربر ادمین است یا نه"""
+    user_email = user.get("email", "")
+    return user_email in ADMIN_EMAILS
 
 
 @app.get("/", tags=["عمومی"], summary="نقطه شروع API")
 def read_root():
-    """یک پیام خوش‌آمدگویی ساده برای تایید اجرای API."""
+    """یک پیام خوشآمدگویی ساده برای تایید اجرای API."""
     return {"message": "به Post API خوش آمدید! برای مستندات به /docs مراجعه کنید."}
 
 
-# --- بخش مدیریت پست‌ها ---
+# --- بخش مدیریت پستها ---
 
 
 @app.get(
-    "/posts", response_model=List[Posts], tags=["پست‌ها"], summary="دریافت تمام پست‌ها"
+    "/posts", response_model=List[Posts], tags=["پستها"], summary="دریافت تمام پستها"
 )
 def get_all_posts():
-    """لیستی از تمام پست‌های موجود در پایگاه داده را بازیابی می‌کند."""
+    """لیستی از تمام پستهای موجود در پایگاه داده را بازیابی میکند."""
     result = (
         supabase.table("posts").select("*").order("created_at", desc=True).execute()
     )
@@ -100,12 +119,12 @@ def get_all_posts():
     "/posts",
     response_model=Posts,
     status_code=status.HTTP_201_CREATED,
-    tags=["پست‌ها"],
+    tags=["پستها"],
     summary="ایجاد یک پست جدید",
 )
 def create_post(post_create: PostCreate, user: dict = Depends(get_current_user)):
     """
-    یک پست جدید ایجاد می‌کند.
+    یک پست جدید ایجاد میکند.
     - **title**: عنوان پست (حداقل ۳ کاراکتر).
     - **contains**: محتوای پست (حداقل ۳ کاراکتر).
     """
@@ -127,11 +146,11 @@ def create_post(post_create: PostCreate, user: dict = Depends(get_current_user))
 @app.get(
     "/posts/{post_id}",
     response_model=Posts,
-    tags=["پست‌ها"],
+    tags=["پستها"],
     summary="دریافت یک پست با شناسه",
 )
 def get_post_by_id(post_id: int):
-    """یک پست را با شناسه منحصر به فرد آن بازیابی می‌کند."""
+    """یک پست را با شناسه منحصر به فرد آن بازیابی میکند."""
     result = supabase.table("posts").select("*").eq("id", post_id).single().execute()
     if not result.data:
         raise HTTPException(
@@ -144,14 +163,14 @@ def get_post_by_id(post_id: int):
 @app.post(
     "/posts/{post_id}/like",
     response_model=Posts,
-    tags=["پست‌ها"],
+    tags=["پستها"],
     summary="لایک کردن یک پست",
 )
 def like_post(post_id: int, user: dict = Depends(get_current_user)):
-    """یک پست مشخص را لایک می‌کند."""
+    """یک پست مشخص را لایک میکند."""
     user_id = user.get("sub")
 
-    # ابتدا پست را پیدا می‌کنیم
+    # ابتدا پست را پیدا میکنیم
     post_res = (
         supabase.table("posts")
         .select("likes, user_id")
@@ -168,26 +187,26 @@ def like_post(post_id: int, user: dict = Depends(get_current_user)):
     # اگر کاربر قبلا لایک نکرده باشد
     if user_id not in likes:
         likes.append(user_id)
-        # به نویسنده پست یک سکه اضافه می‌کنیم
+        # به نویسنده پست یک سکه اضافه میکنیم
         _update_user_coins(post["user_id"], 1)
-        # لیست لایک‌ها را به‌روز می‌کنیم
+        # لیست لایکها را بهروز میکنیم
         updated_post = (
             supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
         )
         return updated_post.data[0]
 
-    # اگر قبلا لایک کرده، خود پست را برمی‌گردانیم
+    # اگر قبلا لایک کرده، خود پست را برمیگردانیم
     return get_post_by_id(post_id)
 
 
 @app.delete(
     "/posts/{post_id}/like",
     response_model=Posts,
-    tags=["پست‌ها"],
+    tags=["پستها"],
     summary="برداشتن لایک یک پست",
 )
 def delete_like_post(post_id: int, user: dict = Depends(get_current_user)):
-    """لایک یک پست مشخص را برمی‌دارد."""
+    """لایک یک پست مشخص را برمیدارد."""
     user_id = user.get("sub")
 
     post_res = (
@@ -205,7 +224,7 @@ def delete_like_post(post_id: int, user: dict = Depends(get_current_user)):
 
     if user_id in likes:
         likes.remove(user_id)
-        # از نویسنده پست یک سکه کم می‌کنیم
+        # از نویسنده پست یک سکه کم میکنیم
         _update_user_coins(post["user_id"], -1)
         updated_post = (
             supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
@@ -218,11 +237,11 @@ def delete_like_post(post_id: int, user: dict = Depends(get_current_user)):
 @app.post(
     "/posts/{post_id}/view",
     response_model=Posts,
-    tags=["پست‌ها"],
+    tags=["پستها"],
     summary="مشاهده یک پست",
 )
 def view_post(post_id: int, user: dict = Depends(get_current_user)):
-    """یک بازدید برای پست ثبت می‌کند."""
+    """یک بازدید برای پست ثبت میکند."""
     user_id = user.get("sub")
 
     post_res = (
@@ -243,11 +262,11 @@ def view_post(post_id: int, user: dict = Depends(get_current_user)):
 @app.delete(
     "/posts/{post_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    tags=["پست‌ها"],
+    tags=["پستها"],
     summary="حذف یک پست",
 )
 def delete_post(post_id: int, user: dict = Depends(get_current_user)):
-    """یک پست مشخص را در صورتی که کاربر مالک آن باشد حذف می‌کند."""
+    """یک پست مشخص را در صورتی که کاربر مالک آن باشد حذف میکند."""
     post_data = (
         supabase.table("posts").select("user_id").eq("id", post_id).single().execute()
     )
@@ -260,17 +279,17 @@ def delete_post(post_id: int, user: dict = Depends(get_current_user)):
     return
 
 
-# --- بخش مدیریت کامنت‌ها ---
+# --- بخش مدیریت کامنتها ---
 
 
 @app.get(
     "/posts/{post_id}/comments",
     response_model=List[Comment],
-    tags=["کامنت‌ها"],
-    summary="دریافت تمام کامنت‌های یک پست",
+    tags=["کامنتها"],
+    summary="دریافت تمام کامنتهای یک پست",
 )
 def get_comments(post_id: int):
-    """تمام کامنت‌های یک پست را به ترتیب زمان ایجاد بازیابی می‌کند."""
+    """تمام کامنتهای یک پست را به ترتیب زمان ایجاد بازیابی میکند."""
     result = (
         supabase.table("comments")
         .select("*")
@@ -285,13 +304,13 @@ def get_comments(post_id: int):
     "/posts/{post_id}/comments",
     response_model=Comment,
     status_code=status.HTTP_201_CREATED,
-    tags=["کامنت‌ها"],
+    tags=["کامنتها"],
     summary="ایجاد کامنت برای یک پست",
 )
 def create_comment(
     post_id: int, comment_create: CommentCreate, user: dict = Depends(get_current_user)
 ):
-    """یک کامنت برای پست مشخص ایجاد می‌کند."""
+    """یک کامنت برای پست مشخص ایجاد میکند."""
     # بررسی وجود پست
     post_exists = (
         supabase.table("posts").select("id").eq("id", post_id).single().execute()
@@ -317,11 +336,11 @@ def create_comment(
 @app.post(
     "/posts/{post_id}/comments/{comment_id}/like",
     response_model=Comment,
-    tags=["کامنت‌ها"],
+    tags=["کامنتها"],
     summary="لایک کردن یک کامنت",
 )
 def like_comment(comment_id: int, user: dict = Depends(get_current_user)):
-    """یک کامنت مشخص را لایک می‌کند."""
+    """یک کامنت مشخص را لایک میکند."""
     user_id = user.get("sub")
 
     comment_res = (
@@ -357,11 +376,11 @@ def like_comment(comment_id: int, user: dict = Depends(get_current_user)):
 @app.delete(
     "/posts/{post_id}/comments/{comment_id}/like",
     response_model=Comment,
-    tags=["کامنت‌ها"],
+    tags=["کامنتها"],
     summary="برداشتن لایک یک کامنت",
 )
 def delete_like_comment(comment_id: int, user: dict = Depends(get_current_user)):
-    """لایک یک کامنت مشخص را برمی‌دارد."""
+    """لایک یک کامنت مشخص را برمیدارد."""
     user_id = user.get("sub")
 
     comment_res = (
@@ -394,14 +413,260 @@ def delete_like_comment(comment_id: int, user: dict = Depends(get_current_user))
     return full_comment.data
 
 
+@app.post(
+    "/posts/{post_id}/comments/{comment_id}/view",
+    response_model=Comment,
+    tags=["کامنتها"],
+    summary="مشاهده یک کامنت",
+)
+def view_comment(comment_id: int, user: dict = Depends(get_current_user)):
+    """یک بازدید برای کامنت ثبت میکند."""
+    user_id = user.get("sub")
+
+    comment_res = (
+        supabase.table("comments").select("views").eq("id", comment_id).single().execute()
+    )
+    if not comment_res.data:
+        raise HTTPException(status_code=404, detail="کامنت یافت نشد")
+
+    views = comment_res.data.get("views", [])
+
+    if user_id not in views:
+        views.append(user_id)
+        supabase.table("comments").update({"views": views}).eq("id", comment_id).execute()
+
+    full_comment = (
+        supabase.table("comments").select("*").eq("id", comment_id).single().execute()
+    )
+    return full_comment.data
+
+
+# --- بخش فروشگاه ---
+
+
+@app.get(
+    "/shop/products",
+    response_model=List[Product],
+    tags=["فروشگاه"],
+    summary="دریافت تمام محصولات فروشگاه",
+)
+def get_products():
+    """لیست تمام محصولات موجود در فروشگاه را بازیابی میکند."""
+    result = (
+        supabase.table("products")
+        .select("*")
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data
+
+
+@app.post(
+    "/shop/upload",
+    tags=["فروشگاه"],
+    summary="آپلود فایل به استوریج",
+)
+async def upload_file(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """فایل را به Supabase Storage آپلود میکند."""
+    try:
+        # بررسی نوع فایل
+        allowed_types = ['application/pdf', 'application/msword', 
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'text/plain', 'application/zip', 'application/x-rar-compressed']
+        
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail="نوع فایل مجاز نیست. فقط PDF, Word, Text, ZIP و RAR پذیرفته میشود."
+            )
+        
+        # بررسی حجم فایل (حداکثر 50MB)
+        file_content = await file.read()
+        if len(file_content) > 50 * 1024 * 1024:
+            raise HTTPException(
+                status_code=400,
+                detail="حجم فایل نباید بیشتر از 50 مگابایت باشد."
+            )
+        
+        # ایجاد نام منحصر به فرد برای فایل
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else ''
+        unique_filename = f"{user.get('sub')}/{uuid.uuid4()}.{file_extension}"
+        
+        # آپلود به Supabase Storage
+        result = supabase.storage.from_("notebooks").upload(
+            unique_filename,
+            file_content,
+            {"content-type": file.content_type}
+        )
+        
+        if result.error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"خطا در آپلود فایل: {result.error}"
+            )
+        
+        # دریافت URL عمومی فایل
+        public_url = supabase.storage.from_("notebooks").get_public_url(unique_filename)
+        
+        return {
+            "file_url": public_url,
+            "filename": file.filename,
+            "size": len(file_content),
+            "upload_progress": 100
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"خطا در آپلود فایل: {str(e)}"
+        )
+
+
+@app.post(
+    "/shop/products",
+    response_model=Product,
+    status_code=status.HTTP_201_CREATED,
+    tags=["فروشگاه"],
+    summary="ایجاد محصول جدید",
+)
+def create_product(
+    product_create: ProductCreate,
+    user: dict = Depends(get_current_user)
+):
+    """محصول جدید برای فروش ایجاد میکند."""
+    result = (
+        supabase.table("products")
+        .insert({
+            "seller_id": user.get("sub"),
+            "seller_name": user.get("name"),
+            "title": product_create.title,
+            "description": product_create.description,
+            "price": product_create.price,
+            "file_url": product_create.file_url,
+        })
+        .execute()
+    )
+    return result.data[0]
+
+
+@app.post(
+    "/shop/products/{product_id}/buy",
+    tags=["فروشگاه"],
+    summary="خرید محصول",
+)
+def buy_product(product_id: int, user: dict = Depends(get_current_user)):
+    """محصول مشخص را خریداری میکند."""
+    user_id = user.get("sub")
+    
+    # بررسی وجود محصول
+    product_res = (
+        supabase.table("products")
+        .select("*")
+        .eq("id", product_id)
+        .single()
+        .execute()
+    )
+    if not product_res.data:
+        raise HTTPException(status_code=404, detail="محصول یافت نشد")
+    
+    product = product_res.data
+    
+    # بررسی اینکه کاربر قبلا این محصول را نخریده باشد
+    existing_purchase = (
+        supabase.table("purchases")
+        .select("id")
+        .eq("buyer_id", user_id)
+        .eq("product_id", product_id)
+        .execute()
+    )
+    if existing_purchase.data:
+        raise HTTPException(status_code=400, detail="شما قبلا این محصول را خریدهاید")
+    
+    # بررسی موجودی سکه کاربر
+    user_coins_res = (
+        supabase.table("users")
+        .select("coins")
+        .eq("user_id", user_id)
+        .single()
+        .execute()
+    )
+    if not user_coins_res.data or user_coins_res.data["coins"] < product["price"]:
+        raise HTTPException(status_code=400, detail="موجودی سکه کافی نیست")
+    
+    # کسر سکه از خریدار
+    _update_user_coins(user_id, -product["price"])
+    
+    # اضافه کردن سکه به فروشنده
+    _update_user_coins(product["seller_id"], product["price"])
+    
+    # ثبت خرید
+    purchase_result = (
+        supabase.table("purchases")
+        .insert({
+            "buyer_id": user_id,
+            "product_id": product_id,
+        })
+        .execute()
+    )
+    
+    return {"message": "خرید با موفقیت انجام شد", "purchase_id": purchase_result.data[0]["id"]}
+
+
+@app.get(
+    "/shop/my-library",
+    response_model=List[Purchase],
+    tags=["فروشگاه"],
+    summary="دریافت کتابخانه کاربر",
+)
+def get_my_library(user: dict = Depends(get_current_user)):
+    """لیست محصولات خریداری شده توسط کاربر را بازیابی میکند."""
+    user_id = user.get("sub")
+    
+    # دریافت خریدها همراه با اطلاعات محصول
+    result = (
+        supabase.table("purchases")
+        .select("*, products(*)")
+        .eq("buyer_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    
+    # تبدیل به فرمت مورد نظر
+    library_items = []
+    for purchase in result.data:
+        library_items.append({
+            "product": purchase["products"]
+        })
+    
+    return library_items
+
+
+# --- بخش لیدربورد ---
+
+
+@app.get(
+    "/leaderboard",
+    response_model=List[LeaderboardEntry],
+    tags=["لیدربورد"],
+    summary="دریافت لیدربورد",
+)
+def get_leaderboard(limit: int = 10):
+    """لیدربورد کاربران با بیشترین سکه را بازیابی میکند."""
+    result = supabase.rpc("get_leaderboard", {"limit_count": limit}).execute()
+    return result.data
+
+
 # --- بخش مدیریت کاربر ---
 
 
 @app.get(
-    "/myposts", response_model=List[Posts], tags=["کاربر"], summary="دریافت پست‌های من"
+    "/myposts", response_model=List[Posts], tags=["کاربر"], summary="دریافت پستهای من"
 )
 def get_my_posts(user: dict = Depends(get_current_user)):
-    """لیست پست‌هایی که توسط کاربر فعلی ایجاد شده را بازیابی می‌کند."""
+    """لیست پستهایی که توسط کاربر فعلی ایجاد شده را بازیابی میکند."""
     result = (
         supabase.table("posts")
         .select("*")
@@ -415,7 +680,7 @@ def get_my_posts(user: dict = Depends(get_current_user)):
 @app.post("/newuser", response_model=User, tags=["کاربر"], summary="افزودن کاربر جدید")
 def new_user(user: dict = Depends(get_current_user)):
     """
-    یک کاربر جدید به پایگاه داده اضافه می‌کند. اگر کاربر وجود داشته باشد، اطلاعاتش را برمی‌گرداند.
+    یک کاربر جدید به پایگاه داده اضافه میکند. اگر کاربر وجود داشته باشد، اطلاعاتش را برمیگرداند.
     """  # noqa: E501
     user_id = user.get("sub")
 
@@ -430,9 +695,9 @@ def new_user(user: dict = Depends(get_current_user)):
     return result.data[0]
 
 
-@app.get("/getcoins", response_model=int, tags=["کاربر"], summary="دریافت سکه‌های کاربر")
+@app.get("/getcoins", response_model=int, tags=["کاربر"], summary="دریافت سکههای کاربر")
 def get_coins(user: dict = Depends(get_current_user)):
-    """تعداد سکه‌های کاربر احراز هویت شده را بازیابی می‌کند."""
+    """تعداد سکههای کاربر احراز هویت شده را بازیابی میکند."""
     result = (
         supabase.table("users")
         .select("coins")
@@ -449,10 +714,10 @@ def get_coins(user: dict = Depends(get_current_user)):
     "/users/{user_id}/coins",
     response_model=int,
     tags=["کاربر"],
-    summary="دریافت سکه‌های یک کاربر خاص",
+    summary="دریافت سکههای یک کاربر خاص",
 )
 def get_user_coins(user_id: str):
-    """تعداد سکه‌های یک کاربر خاص را با شناسه او بازیابی می‌کند."""
+    """تعداد سکههای یک کاربر خاص را با شناسه او بازیابی میکند."""
     result = (
         supabase.table("users")
         .select("coins")
@@ -463,3 +728,69 @@ def get_user_coins(user_id: str):
     if not result.data:
         return 0
     return result.data.get("coins", 0)
+
+
+# --- بخش پنل ادمین ---
+
+
+@app.get(
+    "/admin/users",
+    response_model=List[AdminUser],
+    tags=["ادمین"],
+    summary="دریافت لیست کاربران (فقط ادمین)",
+)
+def get_all_users(user: dict = Depends(get_current_user)):
+    """لیست تمام کاربران را برای ادمین بازیابی میکند."""
+    if not _is_admin(user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="فقط ادمینها به این بخش دسترسی دارند"
+        )
+    
+    result = (
+        supabase.table("users")
+        .select("*")
+        .order("coins", desc=True)
+        .execute()
+    )
+    return result.data
+
+
+@app.post(
+    "/admin/users/{target_user_id}/coins",
+    tags=["ادمین"],
+    summary="اضافه کردن سکه به کاربر (فقط ادمین)",
+)
+def add_coins_to_user(
+    target_user_id: str,
+    amount: int,
+    user: dict = Depends(get_current_user)
+):
+    """سکه به کاربر مشخص اضافه میکند (فقط ادمین)."""
+    if not _is_admin(user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="فقط ادمینها به این بخش دسترسی دارند"
+        )
+    
+    if amount <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="مقدار سکه باید مثبت باشد"
+        )
+    
+    # بررسی وجود کاربر
+    target_user = (
+        supabase.table("users")
+        .select("user_id")
+        .eq("user_id", target_user_id)
+        .single()
+        .execute()
+    )
+    if not target_user.data:
+        raise HTTPException(status_code=404, detail="کاربر یافت نشد")
+    
+    # اضافه کردن سکه
+    _update_user_coins(target_user_id, amount)
+    
+    return {"message": f"{amount} سکه به کاربر {target_user_id} اضافه شد"}

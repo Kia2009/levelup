@@ -6,7 +6,6 @@ import React, {
   useCallback,
 } from "react";
 import "./App.css";
-import "./components/components.css";
 import {
   SignedIn,
   UserButton,
@@ -18,7 +17,6 @@ import {
 import { renderMarkdown } from "./markdown";
 import BadgeProgress from "./components/BadgeProgress";
 import UserBadge from "./components/UserBadge";
-import SellProductModal from "./components/SellProductModal";
 
 const TEXT = {
   en: {
@@ -146,8 +144,7 @@ const TEXT = {
     buy: "خرید",
     download: "دانلود",
     confirmPurchase: "تایید خرید",
-    confirmPurchaseMsg:
-      "آیا از خرید این جزوه به قیمت {price} سکه IQ مطمئن هستید؟",
+    confirmPurchaseMsg: "آیا از خرید این جزوه به قیمت {price} سکه IQ مطمئن هستید؟",
     cancel: "انصراف",
     noProducts: "فروشگاه خالی است. شما اولین نفر باشید!",
     noLibraryItems: "شما هنوز هیچ جزوه‌ای نخریده‌اید.",
@@ -279,53 +276,53 @@ function PostCard({
       }}
       onClick={handlePostClick}
     >
-      <div className="post-card-header">
-        <div className="post-meta">
+      <div className='post-card-header'>
+        <div className='post-meta'>
           <h2>{post.title}</h2>
-          <div className="post-author-with-badge">
-            <span className="post-author">{post.creator}</span>
+          <div className='post-author-with-badge'>
+            <span className='post-author'>{post.creator}</span>
             <UserBadge
               coins={userCoins}
               lang={lang}
-              size="small"
+              size='small'
               showTooltip={true}
               creator={post.creator}
             />
           </div>
-          <span className="post-date">
+          <span className='post-date'>
             {new Date(post.created_at).toLocaleDateString()}
           </span>
         </div>
         {isOwner && (
           <button
-            className="delete-btn"
+            className='delete-btn'
             onClick={(e) => {
               e.stopPropagation();
               onDelete(post.id);
               showAlert(TEXT[lang].alertPostDeleted);
             }}
-            title="Delete"
+            title='Delete'
           >
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+            <svg viewBox='0 0 24 24' width='24' height='24'>
+              <path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' />
             </svg>
           </button>
         )}
       </div>
-      <div className="post-content">{renderMarkdown(post.contains)}</div>
-      <div className="post-actions" style={{ direction: "ltr" }}>
+      <div className='post-content'>{renderMarkdown(post.contains)}</div>
+      <div className='post-actions' style={{ direction: "ltr" }}>
         <button
           className={`like-btn ${hasLiked ? "liked" : ""}`}
           onClick={handleLikeClick}
         >
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          <svg viewBox='0 0 24 24' width='24' height='24'>
+            <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
           </svg>
-          <span className="like-count">{post.likes.length}</span>
+          <span className='like-count'>{post.likes.length}</span>
         </button>
-        <div className="view-count">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+        <div className='view-count'>
+          <svg viewBox='0 0 24 24' width='20' height='20'>
+            <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
           </svg>
           <span>{post.views.length}</span>
         </div>
@@ -384,66 +381,66 @@ function useLang() {
 }
 
 const CoinIcon = () => (
-  <svg viewBox="0 0 24 24" width="24" height="24" className="coin-icon">
+  <svg viewBox='0 0 24 24' width='24' height='24' className='coin-icon'>
     <defs>
-      <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style={{ stopColor: "#FFD700", stopOpacity: 1 }} />
-        <stop offset="50%" style={{ stopColor: "#FFC107", stopOpacity: 1 }} />
-        <stop offset="100%" style={{ stopColor: "#DAA520", stopOpacity: 1 }} />
+      <linearGradient id='goldGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
+        <stop offset='0%' style={{ stopColor: "#FFD700", stopOpacity: 1 }} />
+        <stop offset='50%' style={{ stopColor: "#FFC107", stopOpacity: 1 }} />
+        <stop offset='100%' style={{ stopColor: "#DAA520", stopOpacity: 1 }} />
       </linearGradient>
-      <radialGradient id="shineGradient" cx="25%" cy="25%" r="50%">
-        <stop offset="0%" style={{ stopColor: "#FFFFFF", stopOpacity: 0.7 }} />
-        <stop offset="100%" style={{ stopColor: "#FFD700", stopOpacity: 0 }} />
+      <radialGradient id='shineGradient' cx='25%' cy='25%' r='50%'>
+        <stop offset='0%' style={{ stopColor: "#FFFFFF", stopOpacity: 0.7 }} />
+        <stop offset='100%' style={{ stopColor: "#FFD700", stopOpacity: 0 }} />
       </radialGradient>
-      <filter id="coinShadow">
+      <filter id='coinShadow'>
         <feDropShadow
-          dx="0.5"
-          dy="0.5"
-          stdDeviation="1"
-          floodColor="#000"
-          floodOpacity="0.3"
+          dx='0.5'
+          dy='0.5'
+          stdDeviation='1'
+          floodColor='#000'
+          floodOpacity='0.3'
         />
       </filter>
-      <filter id="emboss">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="0.5" />
+      <filter id='emboss'>
+        <feGaussianBlur in='SourceAlpha' stdDeviation='0.5' />
         <feSpecularLighting
-          result="spec"
-          specularConstant="1"
-          specularExponent="20"
-          lightingColor="#FFFFFF"
+          result='spec'
+          specularConstant='1'
+          specularExponent='20'
+          lightingColor='#FFFFFF'
         >
-          <fePointLight x="8" y="8" z="10" />
+          <fePointLight x='8' y='8' z='10' />
         </feSpecularLighting>
-        <feComposite in="spec" in2="SourceAlpha" operator="in" />
-        <feComposite in="SourceGraphic" />
+        <feComposite in='spec' in2='SourceAlpha' operator='in' />
+        <feComposite in='SourceGraphic' />
       </filter>
     </defs>
     <circle
-      cx="12"
-      cy="12"
-      r="11"
-      fill="url(#goldGradient)"
-      stroke="#B8860B"
-      strokeWidth="1.5"
-      filter="url(#coinShadow)"
+      cx='12'
+      cy='12'
+      r='11'
+      fill='url(#goldGradient)'
+      stroke='#B8860B'
+      strokeWidth='1.5'
+      filter='url(#coinShadow)'
     />
     <circle
-      cx="12"
-      cy="12"
-      r="9.5"
-      fill="none"
-      stroke="#C68E17"
-      strokeWidth="1"
-      filter="url(#emboss)"
+      cx='12'
+      cy='12'
+      r='9.5'
+      fill='none'
+      stroke='#C68E17'
+      strokeWidth='1'
+      filter='url(#emboss)'
     />
-    <circle cx="12" cy="12" r="8" fill="url(#shineGradient)" />
+    <circle cx='12' cy='12' r='8' fill='url(#shineGradient)' />
     <text
-      x="12"
-      y="15"
-      textAnchor="middle"
-      fontSize="10"
-      fill="#8B6508"
-      fontWeight="bold"
+      x='12'
+      y='15'
+      textAnchor='middle'
+      fontSize='10'
+      fill='#8B6508'
+      fontWeight='bold'
     >
       IQ
     </text>
@@ -460,7 +457,7 @@ function CoinCounter({
   lang: "en" | "fa";
 }) {
   return (
-    <div className="coin-counter">
+    <div className='coin-counter'>
       <CoinIcon />
       <span>
         {isLoading
@@ -534,17 +531,17 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
   }, [user?.id, isSignedIn]);
 
   return (
-    <nav className="side-navigation">
-      <div className="nav-logo">
+    <nav className='side-navigation'>
+      <div className='nav-logo'>
         LevelUp
-        <div className="nav-profile">
+        <div className='nav-profile'>
           <UserButton />
         </div>
       </div>
       <UserCoinsWithBadge coins={coins} isLoading={loading} lang={lang} />
-      <div className="nav-links">
+      <div className='nav-links'>
         <a
-          href="/"
+          href='/'
           className={`nav-link ${currentPage === "feed" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
@@ -552,30 +549,30 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
             window.history.pushState(null, "", "/");
           }}
         >
-          <svg viewBox="0 0 24 24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
+          <svg viewBox='0 0 24 24'>
+            <path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' />
+            <polyline points='9 22 9 12 15 12 15 22' />
           </svg>
           <span>{TEXT[lang].home}</span>
         </a>
 
         <a
-          href="/profile"
+          href='/profile'
           className={`nav-link ${currentPage === "profile" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
             setPage("profile");
           }}
         >
-          <svg viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
+          <svg viewBox='0 0 24 24'>
+            <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' />
+            <circle cx='12' cy='7' r='4' />
           </svg>
           <span>{TEXT[lang].profile}</span>
         </a>
 
         <a
-          href="/shop"
+          href='/shop'
           className={`nav-link ${currentPage === "shop" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
@@ -583,31 +580,31 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           }}
         >
           <svg
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
+            fill='none'
+            stroke='currentColor'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth='2'
+            viewBox='0 0 24 24'
           >
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" />
-            <path d="M16 10a4 4 0 01-8 0" />
+            <path d='M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18' />
+            <path d='M16 10a4 4 0 01-8 0' />
           </svg>
 
           <span>{TEXT[lang].shop}</span>
         </a>
 
         <a
-          href="/settings"
+          href='/settings'
           className={`nav-link ${currentPage === "settings" ? "active" : ""}`}
           onClick={(e) => {
             e.preventDefault();
             setPage("settings");
           }}
         >
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          <svg viewBox='0 0 24 24'>
+            <circle cx='12' cy='12' r='3' />
+            <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' />
           </svg>
           <span>{TEXT[lang].settings}</span>
         </a>
@@ -648,10 +645,10 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
   }, [user?.id, isSignedIn]);
 
   return (
-    <nav className="bottom-navigation">
-      <div className="bottom-nav-links">
+    <nav className='bottom-navigation'>
+      <div className='bottom-nav-links'>
         <a
-          href="/"
+          href='/'
           className={`bottom-nav-link ${
             currentPage === "feed" ? "active" : ""
           }`}
@@ -661,18 +658,18 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
             window.history.pushState(null, "", "/");
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
             />
           </svg>
           <span>{TEXT[lang].home}</span>
         </a>
 
         <a
-          href="/profile"
+          href='/profile'
           className={`bottom-nav-link ${
             currentPage === "profile" ? "active" : ""
           }`}
@@ -681,23 +678,23 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
             setPage("profile");
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
             />
           </svg>
           <span>{TEXT[lang].profile}</span>
         </a>
 
-        <div className="mobile-coin-counter">
+        <div className='mobile-coin-counter'>
           <CoinIcon />
           <span>{coins}</span>
         </div>
 
         <a
-          href="/shop"
+          href='/shop'
           className={`bottom-nav-link ${
             currentPage === "shop" ? "active" : ""
           }`}
@@ -707,27 +704,27 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
           }}
         >
           <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
             strokeWidth={2}
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18'
             />
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16 10a4 4 0 01-8 0"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M16 10a4 4 0 01-8 0'
             />
           </svg>
           <span>{TEXT[lang].shop}</span>
         </a>
 
         <a
-          href="/settings"
+          href='/settings'
           className={`bottom-nav-link ${
             currentPage === "settings" ? "active" : ""
           }`}
@@ -736,16 +733,16 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
             setPage("settings");
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
             />
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
             />
           </svg>
           <span>{TEXT[lang].settings}</span>
@@ -859,17 +856,17 @@ function App() {
   return (
     <ThemeProvider>
       <LangProvider>
-        <div className="app-layout">
+        <div className='app-layout'>
           <SideNavigation currentPage={page} setPage={handlePageChange} />
           <BottomNavigation currentPage={page} setPage={handlePageChange} />
           {!selectedPostId && page === "feed" && (
-            <button className="fab-button" onClick={() => setShowModal(true)}>
-              <div className="fab-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 5v14M5 12h14" />
+            <button className='fab-button' onClick={() => setShowModal(true)}>
+              <div className='fab-icon'>
+                <svg viewBox='0 0 24 24'>
+                  <path d='M12 5v14M5 12h14' />
                 </svg>
               </div>
-              <span className="fab-text">{TEXT[lang].addPost}</span>
+              <span className='fab-text'>{TEXT[lang].addPost}</span>
             </button>
           )}
           <LoadingBar isLoading={isLoading} />
@@ -923,8 +920,8 @@ function MainArea({
 }) {
   const { lang } = useLang();
   return (
-    <div className="page-wrapper">
-      <div className="content-area">
+    <div className='page-wrapper'>
+      <div className='content-area'>
         {page === "profile" && <ProfilePage />}
         {page === "feed" && (
           <MainFeed
@@ -955,7 +952,113 @@ function MainArea({
 
 // ===== SHOP COMPONENTS =====
 
-// `SellProductModal` has been moved to `src/components/SellProductModal.tsx` and is imported at the top of this file.
+function SellProductModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (product: Product) => void;
+}) {
+  const { lang } = useLang();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { getToken } = useAuth();
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !description || !price || !fileUrl) {
+      setError(
+        lang === "fa"
+          ? "تمام فیلدها الزامی هستند."
+          : "All fields are required."
+      );
+      return;
+    }
+    if (parseInt(price) <= 0) {
+      setError(lang === "fa" ? "قیمت باید مثبت باشد." : "Price must be positive.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    const token = await getToken({ template: "fullname" });
+    try {
+      const res = await fetch(`${API_URL}/shop/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          price: parseInt(price),
+          file_url: fileUrl,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to create product");
+      }
+      const product = await res.json();
+      onCreated(product);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className='popup-backdrop' onClick={onClose}>
+      <form
+        className='popup-card create-modal sell-modal no-scroll'
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={handleCreate}
+      >
+        <button className='popup-close' onClick={onClose} type='button'>
+          ×
+        </button>
+        <h2>{TEXT[lang].sellItemTitle}</h2>
+        <input
+          type='text'
+          placeholder={TEXT[lang].productTitle}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+        <textarea
+          placeholder={TEXT[lang].productDescription}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+        />
+        <input
+          type='number'
+          placeholder={TEXT[lang].productPrice}
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+          min='1'
+        />
+        <input
+          type='url'
+          placeholder={TEXT[lang].productFileUrl}
+          value={fileUrl}
+          onChange={(e) => setFileUrl(e.target.value)}
+          required
+        />
+        <button type='submit' disabled={loading}>
+          {loading ? TEXT[lang].posting : TEXT[lang].sell}
+        </button>
+        {error && <div className='error'>{error}</div>}
+      </form>
+    </div>
+  );
+}
 
 function ProductCard({
   product,
@@ -985,25 +1088,25 @@ function ProductCard({
   }, [product.seller_id]);
 
   return (
-    <div className="product-card">
-      <div className="product-seller">
+    <div className='product-card'>
+      <div className='product-seller'>
         <span>{TEXT[lang].seller}:</span>
         <UserBadge
           coins={sellerCoins}
           lang={lang}
-          size="small"
+          size='small'
           showTooltip={true}
           creator={product.seller_name}
         />
       </div>
-      <h3 className="product-title">{product.title}</h3>
-      <p className="product-description">{product.description}</p>
-      <div className="product-footer">
-        <div className="product-price">
+      <h3 className='product-title'>{product.title}</h3>
+      <p className='product-description'>{product.description}</p>
+      <div className='product-footer'>
+        <div className='product-price'>
           <CoinIcon />
           <span>{product.price}</span>
         </div>
-        <button className="buy-btn" onClick={() => onBuy(product)}>
+        <button className='buy-btn' onClick={() => onBuy(product)}>
           {TEXT[lang].buy}
         </button>
       </div>
@@ -1089,31 +1192,33 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
   };
 
   return (
-    <div className="shop-container">
-      <header className="main-header">
-        <div className="shop-header">
+    <div className='shop-container'>
+      <header className='main-header'>
+        <div className='shop-header'>
           <h1>{TEXT[lang].shop}</h1>
           <button
-            className="sell-item-btn"
+            className='sell-item-btn'
             onClick={() => setShowSellModal(true)}
           >
             <span>{TEXT[lang].sellItem}</span>
             <svg
-              viewBox="0 0 24 24"
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
+              viewBox='0 0 24 24'
+              width='20'
+              height='20'
+              fill='none'
+              stroke='currentColor'
               strokeWidth={2.5}
             >
-              <path d="M12 5v14M5 12h14" />
+              <path d='M12 5v14M5 12h14' />
             </svg>
           </button>
         </div>
       </header>
-      <nav className="shop-nav">
+      <nav className='shop-nav'>
         <button
-          className={`shop-tab ${activeTab === "marketplace" ? "active" : ""}`}
+          className={`shop-tab ${
+            activeTab === "marketplace" ? "active" : ""
+          }`}
           onClick={() => setActiveTab("marketplace")}
         >
           {TEXT[lang].marketplace}
@@ -1126,13 +1231,13 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
         </button>
       </nav>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className='error-message'>{error}</div>}
 
       {loading ? (
-        <div className="loading-message">{TEXT[lang].loading}</div>
+        <div className='loading-message'>{TEXT[lang].loading}</div>
       ) : activeTab === "marketplace" ? (
         products.length > 0 ? (
-          <div className="product-list">
+          <div className='product-list'>
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -1143,15 +1248,15 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
             ))}
           </div>
         ) : (
-          <div className="no-posts-message">{TEXT[lang].noProducts}</div>
+          <div className='no-posts-message'>{TEXT[lang].noProducts}</div>
         )
       ) : libraryItems.length > 0 ? (
-        <div className="library-list">
+        <div className='library-list'>
           {libraryItems.map((item) => (
-            <div key={item.product.id} className="library-item">
-              <div className="library-item-info">
-                <h3 className="product-title">{item.product.title}</h3>
-                <div className="product-seller">
+            <div key={item.product.id} className='library-item'>
+              <div className='library-item-info'>
+                <h3 className='product-title'>{item.product.title}</h3>
+                <div className='product-seller'>
                   <span>
                     {TEXT[lang].seller}: {item.product.seller_name}
                   </span>
@@ -1159,9 +1264,9 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
               </div>
               <a
                 href={item.product.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="download-btn"
+                target='_blank'
+                rel='noopener noreferrer'
+                className='download-btn'
               >
                 {TEXT[lang].download}
               </a>
@@ -1169,7 +1274,7 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
           ))}
         </div>
       ) : (
-        <div className="no-posts-message">{TEXT[lang].noLibraryItems}</div>
+        <div className='no-posts-message'>{TEXT[lang].noLibraryItems}</div>
       )}
 
       {showSellModal && (
@@ -1180,7 +1285,6 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
             showAlert(TEXT[lang].alertProductCreated);
             fetchMarketplace(); // Refresh list after creating
           }}
-          lang={lang}
         />
       )}
     </div>
@@ -1200,15 +1304,15 @@ function ProfilePage() {
   // Show sign in screen if not signed in
   if (!isSignedIn) {
     return (
-      <main className="main-feed">
-        <header className="main-header">
+      <main className='main-feed'>
+        <header className='main-header'>
           <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
         </header>
-        <div className="profile-container">
-          <div className="profile-signin">
+        <div className='profile-container'>
+          <div className='profile-signin'>
             <h2>{lang === "fa" ? "لطفا وارد شوید" : "Please Sign In"}</h2>
             <SignInButton>
-              <button className="sign-out-button">
+              <button className='sign-out-button'>
                 {lang === "fa" ? "ورود به حساب کاربری" : "Sign In"}
               </button>
             </SignInButton>
@@ -1292,37 +1396,37 @@ function ProfilePage() {
   };
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
           {lang === "fa" ? "پروفایل" : "Profile"}
         </h1>
       </header>
-      <div className="profile-container">
-        <div className="profile-layout">
-          <div className="profile-info-section">
-            <div className="profile-picture-container">
+      <div className='profile-container'>
+        <div className='profile-layout'>
+          <div className='profile-info-section'>
+            <div className='profile-picture-container'>
               <UserButton
                 appearance={{
                   elements: { avatarBox: { width: 120, height: 120 } },
                 }}
               />
             </div>
-            <h2 className="profile-name">
+            <h2 className='profile-name'>
               {user?.fullName ||
                 user?.username ||
                 user?.emailAddresses?.[0]?.emailAddress}
             </h2>
-            <div className="profile-id">{user?.id}</div>
+            <div className='profile-id'>{user?.id}</div>
             <SignOutButton>
-              <button className="sign-out-button">
+              <button className='sign-out-button'>
                 {lang === "fa" ? "خروج" : "Sign Out"}
               </button>
             </SignOutButton>
           </div>
 
-          <div className="profile-content-section">
-            <nav className="profile-nav">
+          <div className='profile-content-section'>
+            <nav className='profile-nav'>
               <button
                 className={`profile-tab ${
                   activeTab === "posts" ? "active" : ""
@@ -1339,25 +1443,25 @@ function ProfilePage() {
               >
                 {lang === "fa" ? "سطح" : "Level"}
               </button>
-              <div className="tab-indicator"></div>
+              <div className='tab-indicator'></div>
             </nav>
-            <div className="profile-content">
+            <div className='profile-content'>
               {activeTab === "posts" ? (
-                <div className="profile-posts">
+                <div className='profile-posts'>
                   {loading ? (
-                    <div className="loading-message">
+                    <div className='loading-message'>
                       {lang === "fa" ? "در حال بارگذاری..." : "Loading..."}
                     </div>
                   ) : error ? (
-                    <div className="error-message">{error}</div>
+                    <div className='error-message'>{error}</div>
                   ) : userPosts.length === 0 ? (
-                    <div className="no-posts-message">
+                    <div className='no-posts-message'>
                       {lang === "fa"
                         ? "هنوز پستی ندارید"
                         : "You haven't created any posts yet"}
                     </div>
                   ) : (
-                    <ul className="post-list">
+                    <ul className='post-list'>
                       {userPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -1372,7 +1476,7 @@ function ProfilePage() {
                   )}
                 </div>
               ) : (
-                <div className="profile-level">
+                <div className='profile-level'>
                   <UserCoinsWithBadge
                     coins={coins}
                     isLoading={loading}
@@ -1398,38 +1502,38 @@ function FormattingToolbar({
   onFormat: (format: string, value?: string) => void;
 }) {
   return (
-    <div className="formatting-toolbar">
+    <div className='formatting-toolbar'>
       <button
-        type="button"
-        className="format-btn"
+        type='button'
+        className='format-btn'
         onClick={() => onFormat("bold")}
       >
         Bold
       </button>
       <button
-        type="button"
-        className="format-btn"
+        type='button'
+        className='format-btn'
         onClick={() => onFormat("italic")}
       >
         Italic
       </button>
       <button
-        type="button"
-        className="format-btn"
+        type='button'
+        className='format-btn'
         onClick={() => onFormat("code")}
       >
         Code
       </button>
       <button
-        type="button"
-        className="format-btn"
+        type='button'
+        className='format-btn'
         onClick={() => onFormat("math")}
       >
         Math
       </button>
       <button
-        type="button"
-        className="format-btn"
+        type='button'
+        className='format-btn'
         onClick={() => onFormat("link")}
       >
         Link
@@ -1526,20 +1630,20 @@ function CreatePostModal({
   };
 
   return (
-    <div className="popup-backdrop" onClick={onClose}>
+    <div className='popup-backdrop' onClick={onClose}>
       <form
-        className="popup-card create-modal no-scroll"
+        className='popup-card create-modal no-scroll'
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleCreate}
       >
-        <button className="popup-close" onClick={onClose} type="button">
+        <button className='popup-close' onClick={onClose} type='button'>
           ×
         </button>
         <h2>{TEXT[lang].addPostTitle}</h2>
         <FormattingToolbar onFormat={handleFormat} />
         <input
           ref={setTitleRef}
-          type="text"
+          type='text'
           placeholder={TEXT[lang].postTitle}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -1586,10 +1690,10 @@ function CreatePostModal({
                 : "Inter, sans-serif",
           }}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? TEXT[lang].posting : TEXT[lang].post}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className='error'>{error}</div>}
       </form>
     </div>
   );
@@ -1655,13 +1759,13 @@ function CommentFormModal({
   };
 
   return (
-    <div className="popup-backdrop" onClick={onClose}>
+    <div className='popup-backdrop' onClick={onClose}>
       <form
-        className="popup-card comment-form-modal"
+        className='popup-card comment-form-modal'
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
       >
-        <button className="popup-close" onClick={onClose} type="button">
+        <button className='popup-close' onClick={onClose} type='button'>
           ×
         </button>
         <h2>{TEXT[lang].addComment}</h2>
@@ -1695,10 +1799,10 @@ function CommentFormModal({
                 : "Inter, sans-serif",
           }}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? TEXT[lang].commenting : TEXT[lang].post}
         </button>
-        {error && <div className="error">{error}</div>}
+        {error && <div className='error'>{error}</div>}
       </form>
     </div>
   );
@@ -1785,18 +1889,18 @@ function MainFeed({
   };
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].feed}</h1>
       </header>
-      {error && <div className="error">{error}</div>}
-      <div className="post-feed-scroll hide-scrollbar">
+      {error && <div className='error'>{error}</div>}
+      <div className='post-feed-scroll hide-scrollbar'>
         {loading ? (
           <div>{TEXT[lang].loading}</div>
         ) : posts.length === 0 ? (
           <div>{TEXT[lang].noPosts}</div>
         ) : (
-          <ul className="post-list">
+          <ul className='post-list'>
             {posts.map((post) => (
               <PostCard
                 key={post.id}
@@ -1817,11 +1921,11 @@ function MainFeed({
 function AboutPage() {
   const { lang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1>{TEXT[lang].aboutTitle}</h1>
       </header>
-      <div className="about-content">
+      <div className='about-content'>
         <p dangerouslySetInnerHTML={{ __html: TEXT[lang].aboutContent }} />
         <ul>
           {TEXT[lang].aboutList.map((item, i) => (
@@ -1837,16 +1941,16 @@ function SettingsPage() {
   const { theme, toggle } = useTheme();
   const { lang, setLang } = useLang();
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
           {lang === "fa" ? "تنظیمات" : "Settings"}
         </h1>
       </header>
-      <div className="settings-content">
-        <div className="setting-row">
+      <div className='settings-content'>
+        <div className='setting-row'>
           <span>{lang === "fa" ? "حالت نمایش" : "Theme"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={theme === "light" ? "active" : ""}
               onClick={() => theme !== "light" && toggle()}
@@ -1861,9 +1965,9 @@ function SettingsPage() {
             </button>
           </div>
         </div>
-        <div className="setting-row">
+        <div className='setting-row'>
           <span>{lang === "fa" ? "زبان" : "Language"}:</span>
-          <div className="setting-buttons">
+          <div className='setting-buttons'>
             <button
               className={lang === "en" ? "active" : ""}
               onClick={() => lang !== "en" && setLang("en")}
@@ -1886,14 +1990,14 @@ function SettingsPage() {
 function Footer() {
   const { lang } = useLang();
   return (
-    <footer className="footer">
+    <footer className='footer'>
       <div>{TEXT[lang].createdBy}</div>
-      <div id="rights">
+      <div id='rights'>
         {TEXT[lang].allRights} © {new Date().getFullYear()}
         {/* اضافه کردن لینک About */}
         <span style={{ margin: "0 8px" }}>•</span> {/* یک جداکننده کوچک */}
         <a
-          href="/about"
+          href='/about'
           onClick={(e) => {
             e.preventDefault();
             // اگر setPage به عنوان prop در دسترس باشد:
@@ -1915,7 +2019,7 @@ function Footer() {
 function LoadingBar({ isLoading }: { isLoading: boolean }) {
   return (
     <div className={`loading-bar ${isLoading ? "loading" : ""}`}>
-      <div className="loading-progress"></div>
+      <div className='loading-progress'></div>
     </div>
   );
 }
@@ -2114,23 +2218,23 @@ function PostPage({
   }, [comments, user?.id]);
 
   if (loading)
-    return <div className="post-page-loading">{TEXT[lang].loading}</div>;
-  if (error) return <div className="post-page-error">{error}</div>;
-  if (!post) return <div className="post-page-error">Post not found</div>;
+    return <div className='post-page-loading'>{TEXT[lang].loading}</div>;
+  if (error) return <div className='post-page-error'>{error}</div>;
+  if (!post) return <div className='post-page-error'>Post not found</div>;
 
   const isFarsi = detectFarsi(post.contains);
   const hasLiked = post?.likes.includes(user?.id || "");
 
   return (
-    <main className="main-feed">
-      <header className="main-header">
+    <main className='main-feed'>
+      <header className='main-header'>
         <button
           onClick={(e) => {
             e.preventDefault();
             setSelectedPostId(null);
             window.history.pushState(null, "", "/");
           }}
-          className="back-button"
+          className='back-button'
         >
           {lang === "fa" ? "بازگشت به فید" : "Back to Feed"}
         </button>
@@ -2144,26 +2248,26 @@ function PostPage({
           className={`post-detail ${isFarsi ? "farsi-font" : "latin-font"}`}
           style={{ direction: isFarsi ? "rtl" : "ltr" }}
         >
-          <div className="post-detail-header">
+          <div className='post-detail-header'>
             <h1>{post.title}</h1>
-            <div className="post-meta">
-              <div className="post-author-with-badge">
-                <span className="post-author">@{post.creator}</span>
+            <div className='post-meta'>
+              <div className='post-author-with-badge'>
+                <span className='post-author'>@{post.creator}</span>
                 <UserBadge
                   coins={postAuthorCoins}
                   lang={lang}
-                  size="small"
+                  size='small'
                   showTooltip={true}
                   creator={post.creator}
                 />
               </div>
-              <span className="post-date">
+              <span className='post-date'>
                 {new Date(post.created_at).toLocaleDateString()}
               </span>
             </div>
           </div>
           <div
-            className="post-content"
+            className='post-content'
             style={{
               direction: isFarsi ? "rtl" : "ltr",
               textAlign: isFarsi ? "right" : "left",
@@ -2171,32 +2275,32 @@ function PostPage({
           >
             {renderMarkdown(post.contains)}
           </div>
-          <div className="post-actions" style={{ direction: "ltr" }}>
+          <div className='post-actions' style={{ direction: "ltr" }}>
             <button
               className={`like-btn ${hasLiked ? "liked" : ""}`}
               onClick={handleLike}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              <svg viewBox='0 0 24 24' width='24' height='24'>
+                <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
               </svg>
-              <span className="like-count">{post.likes.length}</span>
+              <span className='like-count'>{post.likes.length}</span>
             </button>
-            <div className="view-count">
-              <svg viewBox="0 0 24 24" width="20" height="20">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+            <div className='view-count'>
+              <svg viewBox='0 0 24 24' width='20' height='20'>
+                <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
               </svg>
               <span>{post.views.length}</span>
             </div>
           </div>
         </article>
-        <section className="comment-section">
-          <h2 className="comments-header">
+        <section className='comment-section'>
+          <h2 className='comments-header'>
             {lang === "fa" ? "نظرات" : "Comments"}
           </h2>
           {comments.length === 0 ? (
-            <div className="no-comments">{TEXT[lang].noComments}</div>
+            <div className='no-comments'>{TEXT[lang].noComments}</div>
           ) : (
-            <ul className="comment-list">
+            <ul className='comment-list'>
               {comments.map((comment) => (
                 <li
                   key={comment.id}
@@ -2208,39 +2312,39 @@ function PostPage({
                     textAlign: detectFarsi(comment.content) ? "right" : "left",
                   }}
                 >
-                  <div className="comment-meta">
-                    <div className="post-author-with-badge">
-                      <span className="comment-author">{comment.creator}</span>
+                  <div className='comment-meta'>
+                    <div className='post-author-with-badge'>
+                      <span className='comment-author'>{comment.creator}</span>
                       <UserBadge
                         coins={commentCoins[comment.user_id] || 0}
                         lang={lang}
-                        size="small"
+                        size='small'
                         showTooltip={true}
                         creator={comment.creator}
                       />
                     </div>
-                    <span className="comment-date">
+                    <span className='comment-date'>
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="comment-content">
+                  <div className='comment-content'>
                     {renderMarkdown(comment.content)}
                   </div>
-                  <div className="post-actions" style={{ direction: "ltr" }}>
+                  <div className='post-actions' style={{ direction: "ltr" }}>
                     <button
                       className={`like-btn ${
                         comment.likes.includes(user?.id || "") ? "liked" : ""
                       }`}
                       onClick={() => handleCommentLike(comment.id)}
                     >
-                      <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      <svg viewBox='0 0 24 24' width='24' height='24'>
+                        <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
                       </svg>
-                      <span className="like-count">{comment.likes.length}</span>
+                      <span className='like-count'>{comment.likes.length}</span>
                     </button>
-                    <div className="view-count">
-                      <svg viewBox="0 0 24 24" width="20" height="20">
-                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                    <div className='view-count'>
+                      <svg viewBox='0 0 24 24' width='20' height='20'>
+                        <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' />
                       </svg>
                       <span>{comment.views.length}</span>
                     </div>
@@ -2252,11 +2356,11 @@ function PostPage({
         </section>
         <SignedIn>
           <button
-            className="add-comment-btn"
+            className='add-comment-btn'
             onClick={() => setShowCommentModal(true)}
           >
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <path d="M12 5v14M5 12h14" />
+            <svg viewBox='0 0 24 24' width='20' height='20'>
+              <path d='M12 5v14M5 12h14' />
             </svg>
             <span>{TEXT[lang].addComment}</span>
           </button>
@@ -2287,7 +2391,7 @@ function AlertBar({
   }, [onClose]);
 
   return (
-    <div className="alert-bar">
+    <div className='alert-bar'>
       <span>{message}</span>
       <button onClick={onClose}>×</button>
     </div>

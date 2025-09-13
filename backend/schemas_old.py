@@ -5,28 +5,28 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-# این فایل مدلهای دادهای را تعریف میکند که برای اعتبارسنجی ورودی و خروجی API استفاده میشوند.  # noqa: E501
-# Pydantic به صورت خودکار دادهها را اعتبارسنجی و تبدیل میکند.
+# این فایل مدل‌های داده‌ای را تعریف می‌کند که برای اعتبارسنجی ورودی و خروجی API استفاده می‌شوند.  # noqa: E501
+# Pydantic به صورت خودکار داده‌ها را اعتبارسنجی و تبدیل می‌کند.
 
 
 class User(BaseModel):
     """مدل داده برای یک کاربر."""
 
     user_id: str  # شناسه منحصر به فرد کاربر (از Clerk)
-    coins: int = 0  # تعداد سکههای کاربر، مقدار پیشفرض صفر است
+    coins: int = 0  # تعداد سکه‌های کاربر، مقدار پیش‌فرض صفر است
 
 
 class Comment(BaseModel):
     """مدل داده برای یک کامنت."""
 
     id: int  # شناسه کامنت
-    post_id: int  # شناسهی پستی که این کامنت به آن تعلق دارد
-    user_id: str  # شناسهی کاربری که کامنت را ایجاد کرده
+    post_id: int  # شناسه‌ی پستی که این کامنت به آن تعلق دارد
+    user_id: str  # شناسه‌ی کاربری که کامنت را ایجاد کرده
     creator: str  # نام کاربری که کامنت را ایجاد کرده
     content: str  # محتوای کامنت
     created_at: datetime  # زمان ایجاد کامنت
-    likes: List[str] = []  # لیستی از شناسههای کاربرانی که این کامنت را لایک کردهاند
-    views: List[str] = []  # لیستی از شناسههای کاربرانی که این کامنت را مشاهده کردهاند
+    likes: List[str] = []  # لیستی از شناسه‌های کاربرانی که این کامنت را لایک کرده‌اند
+    views: List[str] = []  # لیستی از شناسه‌های کاربرانی که این کامنت را مشاهده کرده‌اند
 
 
 class CommentCreate(BaseModel):
@@ -44,8 +44,8 @@ class Posts(BaseModel):
     user_id: str  # شناسه کاربری که پست را ایجاد کرده
     title: str  # عنوان پست
     contains: str  # محتوای اصلی پست
-    likes: List[str] = []  # لیستی از شناسههای کاربرانی که این پست را لایک کردهاند
-    views: List[str] = []  # لیستی از شناسههای کاربرانی که این پست را مشاهده کردهاند
+    likes: List[str] = []  # لیستی از شناسه‌های کاربرانی که این پست را لایک کرده‌اند
+    views: List[str] = []  # لیستی از شناسه‌های کاربرانی که این پست را مشاهده کرده‌اند
 
 
 class PostCreate(BaseModel):
@@ -53,7 +53,7 @@ class PostCreate(BaseModel):
 
     title: str = Field(..., min_length=3, description="عنوان پست")
     contains: str = Field(
-        ..., min_length=3, description="محتوای پستی که کاربر میخواهد به اشتراک بگذارد."
+        ..., min_length=3, description="محتوای پستی که کاربر می‌خواهد به اشتراک بگذارد."
     )
 
 
@@ -80,23 +80,6 @@ class ProductCreate(BaseModel):
 
 
 class Purchase(BaseModel):
-    """مدل داده برای یک خرید که محصول کامل را شامل میشود."""
+    """مدل داده برای یک خرید که محصول کامل را شامل می‌شود."""
 
     product: Product  # اطلاعات کامل محصول خریداری شده
-
-
-class LeaderboardEntry(BaseModel):
-    """مدل داده برای یک ورودی لیدربورد."""
-
-    user_id: str
-    coins: int
-    rank: int
-
-
-class AdminUser(BaseModel):
-    """مدل داده برای نمایش کاربر در پنل ادمین."""
-
-    id: int
-    user_id: str
-    coins: int
-    created_at: datetime
