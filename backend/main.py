@@ -811,7 +811,7 @@ def get_leaderboard(limit: int = 10):
     # سادگی: از جدول users بالاترین سکه‌ها را گرفته و تبدیل به فرمت مورد نیاز می‌کنیم
     result = (
         supabase.table("users")
-        .select("user_id, coins")
+        .select("user_id, name, coins")
         .order("coins", desc=True)
         .limit(limit)
         .execute()
@@ -821,6 +821,7 @@ def get_leaderboard(limit: int = 10):
     for idx, u in enumerate(data, start=1):
         leaderboard.append({
             "user_id": u.get("user_id"),
+            "name": u.get("name", "Unknown"),
             "coins": u.get("coins", 0),
             "rank": idx,
         })
@@ -937,8 +938,8 @@ def add_coins_to_user(
         )
 
     amount = request.amount
-    if amount <= 0:
-        raise HTTPException(status_code=400, detail="مقدار سکه باید مثبت باشد")
+    if amount == 0:
+        raise HTTPException(status_code=400, detail="مقدار سکه نمی‌تواند صفر باشد")
 
     # بررسی وجود کاربر
     target_user = (
@@ -968,6 +969,10 @@ def add_coins_to_user(
 
         current_coins = current_res.data.get("coins", 0) or 0
         new_coins = current_coins + amount
+        
+        # Prevent negative coins
+        if new_coins < 0:
+            raise HTTPException(status_code=400, detail="موجودی سکه کافی نیست")
 
         update_res = (
             supabase.table("users")
@@ -978,8 +983,9 @@ def add_coins_to_user(
         if getattr(update_res, "error", None):
             raise Exception(getattr(update_res, "error").get("message", "unknown"))
 
+        action_msg = "اضافه شد" if amount > 0 else "کم شد"
         return {
-            "message": f"{amount} سکه به کاربر {target_user_id} اضافه شد",
+            "message": f"{abs(amount)} سکه به کاربر {target_user_id} {action_msg}",
             "new_coins": new_coins,
         }
     except HTTPException:

@@ -93,6 +93,7 @@ class LeaderboardEntry(BaseModel):
     """مدل داده برای یک ورودی لیدربورد."""
 
     user_id: str
+    name: str
     coins: int
     rank: int
 

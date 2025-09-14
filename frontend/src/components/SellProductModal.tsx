@@ -151,37 +151,51 @@ const SellProductModal: React.FC<SellProductModalProps> = ({
           min="1"
         />
 
-        <div className="upload-method-toggle">
-          <div
-            className={`toggle-track ${
-              uploadMethod === "upload" ? "left" : "right"
-            }`}
-            role="tablist"
-            aria-label="Upload method"
-          >
-            <button
-              type="button"
-              className={`toggle-option ${
-                uploadMethod === "upload" ? "active" : ""
+        <div className="upload-method-selector">
+          <div className="method-selector-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            <span>{lang === 'fa' ? 'روش آپلود فایل' : 'File Upload Method'}</span>
+          </div>
+          <div className="enhanced-toggle">
+            <div
+              className={`toggle-track ${
+                uploadMethod === "upload" ? "left" : "right"
               }`}
-              onClick={() => setUploadMethod("upload")}
-              role="tab"
-              aria-selected={uploadMethod === "upload"}
+              role="tablist"
+              aria-label="Upload method"
             >
-              {TEXT[lang].uploadFile}
-            </button>
-            <button
-              type="button"
-              className={`toggle-option ${
-                uploadMethod === "url" ? "active" : ""
-              }`}
-              onClick={() => setUploadMethod("url")}
-              role="tab"
-              aria-selected={uploadMethod === "url"}
-            >
-              {TEXT[lang].useUrl}
-            </button>
-            <div className="toggle-thumb" />
+              <button
+                type="button"
+                className={`toggle-option ${
+                  uploadMethod === "upload" ? "active" : ""
+                }`}
+                onClick={() => setUploadMethod("upload")}
+                role="tab"
+                aria-selected={uploadMethod === "upload"}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                {TEXT[lang].uploadFile}
+              </button>
+              <button
+                type="button"
+                className={`toggle-option ${
+                  uploadMethod === "url" ? "active" : ""
+                }`}
+                onClick={() => setUploadMethod("url")}
+                role="tab"
+                aria-selected={uploadMethod === "url"}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10.59,13.41C11,13.8 11,14.4 10.59,14.81C10.2,15.2 9.6,15.2 9.19,14.81L7.77,13.39L7.77,13.39L6.36,12L7.77,10.61L9.19,9.19C9.6,8.8 10.2,8.8 10.59,9.19C11,9.6 11,10.2 10.59,10.61L10.24,11L14.83,11L14.83,11L16.24,12L14.83,13L10.24,13L10.59,13.41M21,7L15,1L13.5,2.5L16.5,5.5L10.5,11.5L8.5,9.5L2.5,15.5L1,17L7,23L8.5,21.5L14.5,15.5L12.5,13.5L18.5,7.5L21.5,10.5L23,9L21,7Z"/>
+                </svg>
+                {TEXT[lang].useUrl}
+              </button>
+              <div className="toggle-thumb" />
+            </div>
           </div>
         </div>
 

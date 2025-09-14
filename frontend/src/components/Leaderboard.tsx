@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 interface LeaderboardEntry {
   user_id: string;
+  name: string;
   coins: number;
   rank: number;
 }
@@ -75,7 +76,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ lang }) => {
               {getRankIcon(entry.rank)}
             </div>
             <div className="leaderboard-user">
-              {entry.user_id.substring(0, 8)}...
+              {entry.name}
             </div>
             <div className="leaderboard-coins">
               <svg viewBox="0 0 24 24" width="20" height="20" className="coin-icon">

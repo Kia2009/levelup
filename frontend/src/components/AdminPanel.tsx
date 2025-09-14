@@ -22,6 +22,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [coinsToAdd, setCoinsToAdd] = useState<number>(0);
   const [addingCoins, setAddingCoins] = useState(false);
+  const [actionType, setActionType] = useState<"add" | "remove">("add");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"coins" | "date">("coins");
   const { getToken } = useAuth();
@@ -60,12 +61,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
     }
   };
 
-  const handleAddCoins = async () => {
+  const handleCoinsAction = async () => {
     if (!selectedUser || coinsToAdd <= 0) return;
 
     try {
       setAddingCoins(true);
       const token = await getToken({ template: "fullname" });
+      const amount = actionType === "add" ? coinsToAdd : -coinsToAdd;
       const response = await fetch(
         `${API_URL}/admin/users/${selectedUser}/coins`,
         {
@@ -74,22 +76,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ amount: coinsToAdd }),
+          body: JSON.stringify({ amount }),
         }
       );
 
-      if (!response.ok) throw new Error("Failed to add coins");
+      if (!response.ok) throw new Error(`Failed to ${actionType} coins`);
 
-      // بروزرسانی لیست کاربران
       await fetchUsers();
       setSelectedUser("");
       setCoinsToAdd(0);
 
       if (showAlert)
         showAlert(
-          lang === "fa"
-            ? "سکه با موفقیت اضافه شد!"
-            : "Coins added successfully!"
+          actionType === "add"
+            ? lang === "fa"
+              ? "سکه با موفقیت اضافه شد!"
+              : "Coins added successfully!"
+            : lang === "fa"
+            ? "سکه با موفقیت کم شد!"
+            : "Coins removed successfully!"
         );
     } catch (err: any) {
       if (showAlert) showAlert(err.message);
@@ -166,7 +171,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
       <div className="admin-actions">
         <div className="add-coins-section">
           <div className="section-header">
-            <h3>{lang === "fa" ? "اضافه کردن سکه" : "Add Coins"}</h3>
+            <h3>{lang === "fa" ? "مدیریت سکه" : "Manage Coins"}</h3>
             <div className="section-icon">
               <svg viewBox="0 0 24 24" width="20" height="20">
                 <circle cx="12" cy="12" r="10" fill="#FFD700" stroke="#B8860B" strokeWidth="1.5"/>
@@ -193,6 +198,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
               </select>
             </div>
             <div className="form-group">
+              <label>{lang === "fa" ? "عمل" : "Action"}</label>
+              <select
+                value={actionType}
+                onChange={(e) => setActionType(e.target.value as "add" | "remove")}
+                className="user-select"
+              >
+                <option value="add">{lang === "fa" ? "اضافه کردن" : "Add"}</option>
+                <option value="remove">{lang === "fa" ? "کم کردن" : "Remove"}</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label>{lang === "fa" ? "تعداد سکه" : "Amount"}</label>
               <input
                 type="number"
@@ -204,7 +220,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
               />
             </div>
             <button
-              onClick={handleAddCoins}
+              onClick={handleCoinsAction}
               disabled={!selectedUser || coinsToAdd <= 0 || addingCoins}
               className="add-coins-btn"
             >
@@ -214,11 +230,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
               <span>
                 {addingCoins
                   ? lang === "fa"
-                    ? "در حال اضافه کردن..."
-                    : "Adding..."
+                    ? "در حال عملیات..."
+                    : "Processing..."
+                  : actionType === "add"
+                  ? lang === "fa"
+                    ? "اضافه کردن"
+                    : "Add Coins"
                   : lang === "fa"
-                  ? "اضافه کردن"
-                  : "Add Coins"}
+                  ? "کم کردن"
+                  : "Remove Coins"}
               </span>
             </button>
           </div>
@@ -240,20 +260,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ lang, showAlert }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="sort-controls">
-              <button
-                className={`sort-btn ${sortBy === "coins" ? "active" : ""}`}
-                onClick={() => setSortBy("coins")}
-              >
-                {lang === "fa" ? "سکه" : "Coins"}
-              </button>
-              <button
-                className={`sort-btn ${sortBy === "date" ? "active" : ""}`}
-                onClick={() => setSortBy("date")}
-              >
-                {lang === "fa" ? "تاریخ" : "Date"}
-              </button>
-            </div>
+
           </div>
         </div>
         
