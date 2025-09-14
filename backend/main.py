@@ -49,9 +49,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://localhost:5173", 
+        "http://localhost:5173",
         "https://*.vercel.app",
-        os.environ.get("FRONTEND_URL", "*")
+        os.environ.get("FRONTEND_URL", "*"),
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -140,7 +140,7 @@ def _is_admin(user: dict) -> bool:  # noqa: C901
 
     field = "email"
     value = user.get(field)
-    user_emails.add(value.strip().lower()) # pyright: ignore[reportOptionalMemberAccess]
+    user_emails.add(value.strip().lower())  # pyright: ignore[reportOptionalMemberAccess]
 
     # Read admin emails from environment each time so changes take effect without restarting  # noqa: E501
 
@@ -973,7 +973,7 @@ def add_coins_to_user(
 
         current_coins = current_res.data.get("coins", 0) or 0
         new_coins = current_coins + amount
-        
+
         # Prevent negative coins
         if new_coins < 0:
             raise HTTPException(status_code=400, detail="موجودی سکه کافی نیست")
