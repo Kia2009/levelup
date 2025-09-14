@@ -10,19 +10,6 @@ from typing import List, Optional
 # ماژول احراز هویت برای گرفتن اطلاعات کاربر فعلی
 from auth import get_current_user
 from dotenv import load_dotenv  # برای خواندن متغیرهای محیطی از فایل .env
-from supabase import create_client, Client
-from schemas import (
-    User,
-    Comment,
-    CommentCreate,
-    Posts,
-    PostCreate,
-    Product,
-    ProductCreate,
-    Purchase,
-    LeaderboardEntry,
-    AdminUser,
-)
 from fastapi import (
     Depends,
     FastAPI,
@@ -32,10 +19,23 @@ from fastapi import (
     UploadFile,
     status,
 )
-from pydantic import BaseModel
 from fastapi.middleware.cors import (
     CORSMiddleware,
 )
+from pydantic import BaseModel
+from schemas import (
+    AdminUser,
+    Comment,
+    CommentCreate,
+    LeaderboardEntry,
+    PostCreate,
+    Posts,
+    Product,
+    ProductCreate,
+    Purchase,
+    User,
+)
+from supabase import Client, create_client
 
 # نمونهسازی از FastAPI
 app = FastAPI(
@@ -78,16 +78,21 @@ def _update_user_coins(user_id: str, amount: int):
     """
     try:
         rpc_res = supabase.rpc(
-            "update_coins", {"user_id_in": user_id, "amount": amount}).execute()
+            "update_coins", {"user_id_in": user_id, "amount": amount}
+        ).execute()
         # بررسی اینکه آیا rpc خطا برگردانده
         if getattr(rpc_res, "error", None):
-            raise Exception(getattr(rpc_res, "error").get(
-                "message", "RPC update_coins error"))
+            raise Exception(
+                getattr(rpc_res, "error").get("message", "RPC update_coins error")
+            )
 
         # خواندن موجودی نهایی
         result = (
-            supabase.table("users").select("coins").eq(
-                "user_id", user_id).single().execute()
+            supabase.table("users")
+            .select("coins")
+            .eq("user_id", user_id)
+            .single()
+            .execute()
         )
         coins = None
         if result and getattr(result, "data", None):
@@ -95,18 +100,18 @@ def _update_user_coins(user_id: str, amount: int):
 
         if coins is not None and coins < 0:
             # rollback
-            supabase.rpc("update_coins", {
-                         "user_id_in": user_id, "amount": -amount}).execute()
+            supabase.rpc(
+                "update_coins", {"user_id_in": user_id, "amount": -amount}
+            ).execute()
             raise HTTPException(status_code=400, detail="موجودی سکه کافی نیست")
     except HTTPException:
         raise
     except Exception as e:
         print(f"خطا در به‌روزرسانی سکه برای کاربر {user_id}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"خطا در به‌روزرسانی سکه: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"خطا در به‌روزرسانی سکه: {str(e)}")
 
 
-def _is_admin(user: dict) -> bool:
+def _is_admin(user: dict) -> bool:  # noqa: C901
     """بررسی میکند که آیا کاربر ادمین است یا نه"""
     if not user:
         return False
@@ -138,7 +143,7 @@ def _is_admin(user: dict) -> bool:
                         if isinstance(nested_email, str) and nested_email.strip():
                             user_emails.add(nested_email.strip().lower())
 
-    # Read admin emails from environment each time so changes take effect without restarting
+    # Read admin emails from environment each time so changes take effect without restarting  # noqa: E501
     raw = os.environ.get("ADMIN_EMAILS", "") or ""
     # Support comma or semicolon separated lists
     split_chars = [",", ";"]
@@ -146,7 +151,7 @@ def _is_admin(user: dict) -> bool:
     for ch in split_chars:
         parts = []
         for piece in admin_list:
-            parts.extend([p for p in piece.split(ch)])
+            parts.extend(list(piece.split(ch)))
         admin_list = parts
 
     admin_entries = [e.strip() for e in admin_list if e and e.strip()]
@@ -154,7 +159,7 @@ def _is_admin(user: dict) -> bool:
     # treat non-email entries as possible Clerk user ids
     admin_ids = [e for e in admin_entries if "@" not in e]
 
-    # If any extracted user email matches admin emails, or user sub matches admin id, allow
+    # If any extracted user email matches admin emails, or user sub matches admin id, allow  # noqa: E501
     if any(email in admin_emails_lower for email in user_emails):
         return True
 
@@ -166,14 +171,18 @@ def _is_admin(user: dict) -> bool:
 
 
 @app.get("/admin/check", tags=["ادمین"], summary="بررسی ادمین (debug)")
-def admin_check(user: dict = Depends(get_current_user)):
-    """بازمی‌گرداند: payload توکن فعلی، ایمیل‌های استخراج شده و لیست ADMIN_EMAILS برای دیباگ."""
+def admin_check(user: dict = Depends(get_current_user)):  # noqa: C901
+    """بازمی‌گرداند: payload توکن فعلی، ایمیل‌های استخراج شده و لیست ADMIN_EMAILS برای دیباگ."""  # noqa: E501
     # Extract emails using the same logic as _is_admin
     user_emails = set()
 
     email_fields = [
-        "email", "email_address", "primary_email", "emailAddress",
-        "primary_email_address", "email_addresses"
+        "email",
+        "email_address",
+        "primary_email",
+        "emailAddress",
+        "primary_email_address",
+        "email_addresses",
     ]
 
     for field in email_fields:
@@ -196,7 +205,7 @@ def admin_check(user: dict = Depends(get_current_user)):
     for ch in [",", ";"]:
         parts = []
         for piece in admin_list:
-            parts.extend([p for p in piece.split(ch)])
+            parts.extend(list(piece.split(ch)))
         admin_list = parts
     admin_entries = [e.strip() for e in admin_list if e and e.strip()]
     admin_emails = [e for e in admin_entries if "@" in e]
@@ -231,8 +240,7 @@ def read_root():
 def get_all_posts():
     """لیستی از تمام پستهای موجود در پایگاه داده را بازیابی میکند."""
     result = (
-        supabase.table("posts").select(
-            "*").order("created_at", desc=True).execute()
+        supabase.table("posts").select("*").order("created_at", desc=True).execute()
     )
     return result.data
 
@@ -273,8 +281,7 @@ def create_post(post_create: PostCreate, user: dict = Depends(get_current_user))
 )
 def get_post_by_id(post_id: int):
     """یک پست را با شناسه منحصر به فرد آن بازیابی میکند."""
-    result = supabase.table("posts").select(
-        "*").eq("id", post_id).single().execute()
+    result = supabase.table("posts").select("*").eq("id", post_id).single().execute()
     if not result.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -314,8 +321,7 @@ def like_post(post_id: int, user: dict = Depends(get_current_user)):
         _update_user_coins(post["user_id"], 1)
         # لیست لایکها را بهروز میکنیم
         updated_post = (
-            supabase.table("posts").update(
-                {"likes": likes}).eq("id", post_id).execute()
+            supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
         )
         return updated_post.data[0]
 
@@ -351,8 +357,7 @@ def delete_like_post(post_id: int, user: dict = Depends(get_current_user)):
         # از نویسنده پست یک سکه کم میکنیم
         _update_user_coins(post["user_id"], -1)
         updated_post = (
-            supabase.table("posts").update(
-                {"likes": likes}).eq("id", post_id).execute()
+            supabase.table("posts").update({"likes": likes}).eq("id", post_id).execute()
         )
         return updated_post.data[0]
 
@@ -370,8 +375,7 @@ def view_post(post_id: int, user: dict = Depends(get_current_user)):
     user_id = user.get("sub")
 
     post_res = (
-        supabase.table("posts").select("views").eq(
-            "id", post_id).single().execute()
+        supabase.table("posts").select("views").eq("id", post_id).single().execute()
     )
     if not post_res.data:
         raise HTTPException(status_code=404, detail="پست یافت نشد")
@@ -380,8 +384,7 @@ def view_post(post_id: int, user: dict = Depends(get_current_user)):
 
     if user_id not in views:
         views.append(user_id)
-        supabase.table("posts").update(
-            {"views": views}).eq("id", post_id).execute()
+        supabase.table("posts").update({"views": views}).eq("id", post_id).execute()
 
     return get_post_by_id(post_id)
 
@@ -395,8 +398,7 @@ def view_post(post_id: int, user: dict = Depends(get_current_user)):
 def delete_post(post_id: int, user: dict = Depends(get_current_user)):
     """یک پست مشخص را در صورتی که کاربر مالک آن باشد حذف میکند."""
     post_data = (
-        supabase.table("posts").select("user_id").eq(
-            "id", post_id).single().execute()
+        supabase.table("posts").select("user_id").eq("id", post_id).single().execute()
     )
     if not post_data.data or post_data.data["user_id"] != user.get("sub"):
         raise HTTPException(
@@ -441,12 +443,10 @@ def create_comment(
     """یک کامنت برای پست مشخص ایجاد میکند."""
     # بررسی وجود پست
     post_exists = (
-        supabase.table("posts").select("id").eq(
-            "id", post_id).single().execute()
+        supabase.table("posts").select("id").eq("id", post_id).single().execute()
     )
     if not post_exists.data:
-        raise HTTPException(
-            status_code=404, detail=f"پستی با شناسه {post_id} یافت نشد")
+        raise HTTPException(status_code=404, detail=f"پستی با شناسه {post_id} یافت نشد")
 
     result = (
         supabase.table("comments")
@@ -498,8 +498,7 @@ def like_comment(comment_id: int, user: dict = Depends(get_current_user)):
         return updated_comment.data[0]
 
     full_comment = (
-        supabase.table("comments").select(
-            "*").eq("id", comment_id).single().execute()
+        supabase.table("comments").select("*").eq("id", comment_id).single().execute()
     )
     return full_comment.data
 
@@ -539,8 +538,7 @@ def delete_like_comment(comment_id: int, user: dict = Depends(get_current_user))
         return updated_comment.data[0]
 
     full_comment = (
-        supabase.table("comments").select(
-            "*").eq("id", comment_id).single().execute()
+        supabase.table("comments").select("*").eq("id", comment_id).single().execute()
     )
     return full_comment.data
 
@@ -574,8 +572,7 @@ def view_comment(comment_id: int, user: dict = Depends(get_current_user)):
         ).execute()
 
     full_comment = (
-        supabase.table("comments").select(
-            "*").eq("id", comment_id).single().execute()
+        supabase.table("comments").select("*").eq("id", comment_id).single().execute()
     )
     return full_comment.data
 
@@ -592,8 +589,7 @@ def view_comment(comment_id: int, user: dict = Depends(get_current_user)):
 def get_products():
     """لیست تمام محصولات موجود در فروشگاه را بازیابی میکند."""
     result = (
-        supabase.table("products").select(
-            "*").order("created_at", desc=True).execute()
+        supabase.table("products").select("*").order("created_at", desc=True).execute()
     )
     return result.data
 
@@ -633,24 +629,26 @@ async def upload_file(
 
         # ایجاد نام منحصر به فرد برای فایل
         # pyright: ignore[reportOptionalMemberAccess, reportOperatorIssue]
-        file_extension = file.filename.split(
-            ".")[-1] if "." in file.filename else ""
+        file_extension = (
+            file.filename.split(  # pyright: ignore[reportOptionalMemberAccess]
+                "."
+            )[-1]
+            if "." in file.filename # pyright: ignore[reportOperatorIssue]
+            else ""
+        )  # pyright: ignore[reportOperatorIssue]
         unique_filename = f"{user.get('sub')}/{uuid.uuid4()}.{file_extension}"
 
         # آپلود به Supabase Storage
         try:
             result = supabase.storage.from_("notebooks").upload(
-                unique_filename, file_content, {
-                    "content-type": file.content_type}
+                unique_filename, file_content, {"content-type": file.content_type}
             )
 
         except Exception as e:
-            raise HTTPException(
-                status_code=501, detail=f"خطا در آپلود فایل: {str(e)}")
+            raise HTTPException(status_code=501, detail=f"خطا در آپلود فایل: {str(e)}")
 
         # دریافت URL عمومی فایل
-        public_url = supabase.storage.from_(
-            "notebooks").get_public_url(unique_filename)
+        public_url = supabase.storage.from_("notebooks").get_public_url(unique_filename)
 
         return {
             "file_url": public_url,
@@ -660,8 +658,7 @@ async def upload_file(
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"خطا در آپلود فایل: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"خطا در آپلود فایل: {str(e)}")
 
 
 @app.post(
@@ -701,8 +698,7 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
 
     # بررسی وجود محصول
     product_res = (
-        supabase.table("products").select(
-            "*").eq("id", product_id).single().execute()
+        supabase.table("products").select("*").eq("id", product_id).single().execute()
     )
     if not product_res.data:
         raise HTTPException(status_code=404, detail="محصول یافت نشد")
@@ -711,8 +707,7 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
 
     # کاربر نباید بتواند محصول خودش را بخرد
     if product.get("seller_id") == user_id:
-        raise HTTPException(
-            status_code=400, detail="نمی‌توانید محصول خودتان را بخرید")
+        raise HTTPException(status_code=400, detail="نمی‌توانید محصول خودتان را بخرید")
 
     # بررسی اینکه کاربر قبلا این محصول را نخریده باشد
     existing_purchase = (
@@ -723,8 +718,7 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
         .execute()
     )
     if existing_purchase.data:
-        raise HTTPException(
-            status_code=400, detail="شما قبلا این محصول را خریدهاید")
+        raise HTTPException(status_code=400, detail="شما قبلا این محصول را خریدهاید")
 
     # بررسی موجودی سکه کاربر
     user_coins_res = (
@@ -741,7 +735,7 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
     try:
         # کسر از خریدار
         # pyright: ignore[reportArgumentType]
-        _update_user_coins(user_id, -product["price"])
+        _update_user_coins(user_id, -product["price"])  # pyright: ignore[reportArgumentType]
 
         # اضافه کردن به فروشنده
         _update_user_coins(product["seller_id"], product["price"])
@@ -764,11 +758,10 @@ def buy_product(product_id: int, user: dict = Depends(get_current_user)):
         # تلاش برای rollback در صورت کسر سکه از خریدار اما خطا در ادامه
         try:
             # اگر از خریدار کسر شده باشد، سعی کن آن را برگردانی (افزایش مقدار)
-            _update_user_coins(user_id, product["price"])  # بازگردانی کسر
+            _update_user_coins(user_id, product["price"])  # pyright: ignore[reportArgumentType] # بازگردانی کسر
         except Exception:
             pass
-        raise HTTPException(
-            status_code=500, detail=f"خطا در فرایند خرید: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"خطا در فرایند خرید: {str(e)}")
 
 
 @app.get(
@@ -780,15 +773,13 @@ def product_stats(product_id: int):
     """تعداد خریدهای یک محصول را برمی‌گرداند."""
     # بررسی وجود محصول
     product_res = (
-        supabase.table("products").select(
-            "*").eq("id", product_id).single().execute()
+        supabase.table("products").select("*").eq("id", product_id).single().execute()
     )
     if not product_res.data:
         raise HTTPException(status_code=404, detail="محصول یافت نشد")
 
     purchases_res = (
-        supabase.table("purchases").select("id").eq(
-            "product_id", product_id).execute()
+        supabase.table("purchases").select("id").eq("product_id", product_id).execute()
     )
     purchase_count = len(purchases_res.data) if purchases_res.data else 0
 
@@ -838,14 +829,20 @@ def get_leaderboard(limit: int = 10):
     """لیدربورد کاربران با بیشترین سکه را بازیابی میکند."""
     # سادگی: از جدول users بالاترین سکه‌ها را گرفته و تبدیل به فرمت مورد نیاز می‌کنیم
     result = (
-        supabase.table("users").select("user_id, coins").order(
-            "coins", desc=True).limit(limit).execute()
+        supabase.table("users")
+        .select("user_id, coins")
+        .order("coins", desc=True)
+        .limit(limit)
+        .execute()
     )
     data = result.data or []
     leaderboard = []
     for idx, u in enumerate(data, start=1):
-        leaderboard.append({"user_id": u.get("user_id"),
-                           "coins": u.get("coins", 0), "rank": idx})
+        leaderboard.append({
+            "user_id": u.get("user_id"),
+            "coins": u.get("coins", 0),
+            "rank": idx,
+        })
     return leaderboard
 
 
@@ -875,8 +872,7 @@ def new_user(user: dict = Depends(get_current_user)):
     user_id = user.get("sub")
 
     # بررسی وجود کاربر
-    existing_user = supabase.table("users").select(
-        "*").eq("user_id", user_id).execute()
+    existing_user = supabase.table("users").select("*").eq("user_id", user_id).execute()
     if existing_user.data:
         return existing_user.data[0]
 
@@ -938,8 +934,7 @@ def get_all_users(user: dict = Depends(get_current_user)):
             detail="فقط ادمینها به این بخش دسترسی دارند",
         )
 
-    result = supabase.table("users").select(
-        "*").order("coins", desc=True).execute()
+    result = supabase.table("users").select("*").order("coins", desc=True).execute()
     return result.data
 
 
@@ -949,7 +944,9 @@ def get_all_users(user: dict = Depends(get_current_user)):
     summary="اضافه کردن سکه به کاربر (فقط ادمین)",
 )
 def add_coins_to_user(
-    target_user_id: str, request: AddCoinsRequest, user: dict = Depends(get_current_user)
+    target_user_id: str,
+    request: AddCoinsRequest,
+    user: dict = Depends(get_current_user),
 ):
     """سکه به کاربر مشخص اضافه میکند (فقط ادمین)."""
     if not _is_admin(user):
@@ -979,8 +976,11 @@ def add_coins_to_user(
     # new total and update the row directly.
     try:
         current_res = (
-            supabase.table("users").select("coins").eq(
-                "user_id", target_user_id).single().execute()
+            supabase.table("users")
+            .select("coins")
+            .eq("user_id", target_user_id)
+            .single()
+            .execute()
         )
         if not current_res.data:
             raise HTTPException(status_code=404, detail="کاربر یافت نشد")
@@ -989,17 +989,20 @@ def add_coins_to_user(
         new_coins = current_coins + amount
 
         update_res = (
-            supabase.table("users").update({"coins": new_coins}).eq(
-                "user_id", target_user_id).execute()
+            supabase.table("users")
+            .update({"coins": new_coins})
+            .eq("user_id", target_user_id)
+            .execute()
         )
         if getattr(update_res, "error", None):
-            raise Exception(
-                getattr(update_res, "error").get("message", "unknown"))
+            raise Exception(getattr(update_res, "error").get("message", "unknown"))
 
-        return {"message": f"{amount} سکه به کاربر {target_user_id} اضافه شد", "new_coins": new_coins}
+        return {
+            "message": f"{amount} سکه به کاربر {target_user_id} اضافه شد",
+            "new_coins": new_coins,
+        }
     except HTTPException:
         raise
     except Exception as e:
         print(f"خطا در اضافه کردن سکه به {target_user_id}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"خطا در اضافه کردن سکه: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"خطا در اضافه کردن سکه: {str(e)}")
