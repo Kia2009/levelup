@@ -119,31 +119,6 @@ def _is_admin(user: dict) -> bool:  # noqa: C901
     # Extract emails from various possible fields in Clerk JWT payload
     user_emails = set()
 
-    # Check all possible email fields in Clerk JWT
-    email_fields = [
-        "email",
-        "email_address",
-        "primary_email",
-        "emailAddress",
-        "primary_email_address",
-        "email_addresses",
-    ]
-
-    for field in email_fields:
-        value = user.get(field)
-        if isinstance(value, str) and value.strip():
-            user_emails.add(value.strip().lower())
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, str) and item.strip():
-                    user_emails.add(item.strip().lower())
-                elif isinstance(item, dict):
-                    for nested_field in ["email_address", "email"]:
-                        nested_email = item.get(nested_field)
-                        if isinstance(nested_email, str) and nested_email.strip():
-                            user_emails.add(nested_email.strip().lower())
-
-    # Read admin emails from environment each time so changes take effect without restarting  # noqa: E501
     raw = os.environ.get("ADMIN_EMAILS", "") or ""
     # Support comma or semicolon separated lists
     split_chars = [",", ";"]
@@ -159,12 +134,18 @@ def _is_admin(user: dict) -> bool:  # noqa: C901
     # treat non-email entries as possible Clerk user ids
     admin_ids = [e for e in admin_entries if "@" not in e]
 
+    field = "email"
+    value = user.get(field)
+    user_emails.add(value.strip().lower()) # pyright: ignore[reportOptionalMemberAccess]
+
+    # Read admin emails from environment each time so changes take effect without restarting  # noqa: E501
+
     # If any extracted user email matches admin emails, or user sub matches admin id, allow  # noqa: E501
     if any(email in admin_emails_lower for email in user_emails):
         return True
 
     user_sub = (user.get("sub") or "").strip()
-    if user_sub and user_sub in admin_ids:
+    if user_sub in admin_ids:
         return True
 
     return False
@@ -633,7 +614,7 @@ async def upload_file(
             file.filename.split(  # pyright: ignore[reportOptionalMemberAccess]
                 "."
             )[-1]
-            if "." in file.filename # pyright: ignore[reportOperatorIssue]
+            if "." in file.filename  # pyright: ignore[reportOperatorIssue]
             else ""
         )  # pyright: ignore[reportOperatorIssue]
         unique_filename = f"{user.get('sub')}/{uuid.uuid4()}.{file_extension}"
@@ -877,7 +858,7 @@ def new_user(user: dict = Depends(get_current_user)):
         return existing_user.data[0]
 
     # ایجاد کاربر جدید
-    new_user_data = {"user_id": user_id, "coins": 0}
+    new_user_data = {"user_id": user_id, "name": user.get("name"), "coins": 0}
     result = supabase.table("users").insert(new_user_data).execute()
     return result.data[0]
 
