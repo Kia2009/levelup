@@ -547,6 +547,12 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
     fetchUserCoins();
   }, [user?.id, isSignedIn]);
 
+  const _is_admin = (user: any) => {
+    if (!user) return false;
+    const admin_ids = (import.meta.env.VITE_ADMIN_IDS || "").split(",");
+    return admin_ids.includes(user.id);
+  };
+
   return (
     <nav className="side-navigation">
       <div className="nav-logo">
@@ -567,7 +573,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           }}
         >
           <svg viewBox="0 0 24 24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
           <span>{TEXT[lang].home}</span>
@@ -621,25 +627,37 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
             setPage("leaderboard");
           }}
         >
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2l2.9 6.3L22 9.3l-5 4.1 1.2 6.7L12 17.8 5.8 20.1 7 13.4 2 9.3l7.1-1L12 2z" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="leaderboard-icon"
+          >
+            <rect x="3" y="8" width="4" height="12" rx="1" />
+            <rect x="10" y="4" width="4" height="16" rx="1" />
+            <rect x="17" y="12" width="4" height="8" rx="1" />
           </svg>
           <span>{TEXT[lang].leaderboard}</span>
         </a>
 
-        <a
-          href="/admin"
-          className={`nav-link ${currentPage === "admin" ? "active" : ""}`}
-          onClick={(e) => {
-            e.preventDefault();
-            setPage("admin");
-          }}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-8 4v6l8 4 8-4v-6l-8-4z" />
-          </svg>
-          <span>{TEXT[lang].admin || "Admin"}</span>
-        </a>
+        {_is_admin(user) && (
+          <a
+            href="/admin"
+            className={`nav-link ${currentPage === "admin" ? "active" : ""}`}
+            onClick={(e) => {
+              e.preventDefault();
+              setPage("admin");
+            }}
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-8 4v6l8 4 8-4v-6l-8-4z" />
+            </svg>
+            <span>{TEXT[lang].admin}</span>
+          </a>
+        )}
 
         <a
           href="/settings"
@@ -799,998 +817,18 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
   );
 }
 
-function App() {
-  const [page, setPage] = useState<PageType>("feed");
-  const [showModal, setShowModal] = useState(false);
-  const [newPost, setNewPost] = useState<PostDisponivel | null>(null);
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
-
-  const { user } = useUser();
-  const { getToken } = useAuth();
-
-  const { lang } = useLang();
-
-  const showAlert = useCallback((message: string) => {
-    setAlertMessage(message);
-    setTimeout(() => {
-      setAlertMessage(null);
-    }, 3300);
-  }, []);
-
-  useEffect(() => {
-    Promise.all([new Promise((resolve) => setTimeout(resolve, 500))]).then(
-      () => {
-        setPageLoading(false);
-      }
-    );
-  }, []);
-
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/") {
-      setPage("feed");
-      setSelectedPostId(null);
-    } else if (path === "/about") {
-      setPage("about");
-    } else if (path === "/settings") {
-      setPage("settings");
-    } else if (path === "/profile") {
-      setPage("profile");
-    } else if (path === "/shop") {
-      setPage("shop");
-    } else {
-      const match = path.match(/^\/(\d+)$/);
-      if (match) {
-        setSelectedPostId(match[1]);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleRouteChange = () => {
-      setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 1000);
-    };
-
-    window.addEventListener("popstate", handleRouteChange);
-    return () => window.removeEventListener("popstate", handleRouteChange);
-  }, []);
-
-  const handlePageChange = (newPage: PageType) => {
-    setPage(newPage);
-    setSelectedPostId(null);
-  };
-
-  const addNewUser = useCallback(async () => {
-    try {
-      const token = await getToken({ template: "fullname" });
-      const response = await fetch(`${API_URL}/newuser`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create user");
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error creating user:", error);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    if (user) {
-      addNewUser();
-    }
-  }, [user, addNewUser]);
-
-  if (pageLoading) {
-    return <LoadingBar isLoading={true} />;
-  }
-
-  return (
-    <ThemeProvider>
-      <LangProvider>
-        <div className="app-layout">
-          <SideNavigation currentPage={page} setPage={handlePageChange} />
-          <BottomNavigation currentPage={page} setPage={handlePageChange} />
-          {!selectedPostId && page === "feed" && (
-            <button className="fab-button" onClick={() => setShowModal(true)}>
-              <div className="fab-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </div>
-              <span className="fab-text">{TEXT[lang].addPost}</span>
-            </button>
-          )}
-          <LoadingBar isLoading={isLoading} />
-          {alertMessage && (
-            <AlertBar
-              message={alertMessage}
-              onClose={() => setAlertMessage(null)}
-            />
-          )}
-          <div className={`page-container ${isLoading ? "loading" : ""}`}>
-            {selectedPostId ? (
-              <PostPage
-                postId={selectedPostId}
-                setSelectedPostId={setSelectedPostId}
-                showAlert={showAlert}
-              />
-            ) : (
-              <MainArea
-                page={page}
-                setShowModal={setShowModal}
-                showModal={showModal}
-                newPost={newPost}
-                setNewPost={setNewPost}
-                setPage={handlePageChange}
-                showAlert={showAlert}
-              />
-            )}
-          </div>
-          <Footer />
-        </div>
-      </LangProvider>
-    </ThemeProvider>
-  );
-}
-
-function MainArea({
-  page,
-  setShowModal,
-  showModal,
-  newPost,
-  setNewPost,
-  showAlert,
-}: {
-  page: PageType;
-  setShowModal: (b: boolean) => void;
-  showModal: boolean;
-  newPost: PostDisponivel | null;
-  setNewPost: (p: PostDisponivel | null) => void;
-  setPage: (p: PageType) => void;
-  showAlert: (message: string) => void;
-}) {
-  const { lang } = useLang();
-  return (
-    <div className="page-wrapper">
-      <div className="content-area">
-        {page === "profile" && <ProfilePage />}
-        {page === "feed" && (
-          <MainFeed
-            showModal={showModal}
-            setShowModal={setShowModal}
-            newPost={newPost}
-            setNewPost={setNewPost}
-            showAlert={showAlert}
-          />
-        )}
-        {page === "about" && <AboutPage />}
-        {page === "settings" && <SettingsPage />}
-        {page === "shop" && <ShopPage showAlert={showAlert} />}
-        {page === "leaderboard" && <Leaderboard lang={lang} />}
-        {page === "admin" && <AdminPanel lang={lang} showAlert={showAlert} />}
-        {showModal && (
-          <CreatePostModal
-            onClose={() => setShowModal(false)}
-            onCreated={(post) => {
-              setShowModal(false);
-              setNewPost(post);
-              showAlert(TEXT[lang].alertPostCreated);
-            }}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ===== SHOP COMPONENTS =====
-
-// `SellProductModal` has been moved to `src/components/SellProductModal.tsx` and is imported at the top of this file.
-
-function ProductCard({
-  product,
-  onBuy,
-  lang,
-}: {
-  product: Product;
-  onBuy: (product: Product) => void;
-  lang: "en" | "fa";
-}) {
-  const [sellerCoins, setSellerCoins] = useState<number>(0);
-  const [buyerCount, setBuyerCount] = useState<number>(0);
-
-  useEffect(() => {
-    const fetchSellerCoins = async () => {
-      try {
-        const res = await fetch(`${API_URL}/users/${product.seller_id}/coins`);
-        if (res.ok) {
-          const coins = await res.json();
-          setSellerCoins(coins);
-        }
-      } catch (err) {
-        console.error("Failed to fetch seller coins:", err);
-      }
-    };
-
-    const fetchBuyerCount = async () => {
-      try {
-        const res = await fetch(`${API_URL}/shop/products/${product.id}/stats`);
-        if (res.ok) {
-          const data = await res.json();
-          setBuyerCount(data.purchase_count || 0);
-        }
-      } catch (err) {
-        console.error("Failed to fetch buyer count:", err);
-      }
-    };
-
-    fetchSellerCoins();
-    fetchBuyerCount();
-  }, [product.seller_id]);
-
-  return (
-    <div className="product-card">
-      <div className="product-seller">
-        <span>{TEXT[lang].seller}:</span>
-        <UserBadge
-          coins={sellerCoins}
-          lang={lang}
-          size="small"
-          showTooltip={true}
-          creator={product.seller_name}
-        />
-        <span className="product-buyer-count">
-          {buyerCount} {lang === "fa" ? "خریدار" : "buyers"}
-        </span>
-      </div>
-      <h3 className="product-title">{product.title}</h3>
-      <p className="product-description">{product.description}</p>
-      <div className="product-footer">
-        <div className="product-price">
-          <CoinIcon />
-          <span>{product.price}</span>
-        </div>
-        <button className="buy-btn" onClick={() => onBuy(product)}>
-          {TEXT[lang].buy}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
-  const { lang } = useLang();
-  const { getToken } = useAuth();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmProduct, setConfirmProduct] = useState<Product | null>(null);
-  const [activeTab, setActiveTab] = useState<"marketplace" | "library">(
-    "marketplace"
-  );
-  const [products, setProducts] = useState<Product[]>([]);
-  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showSellModal, setShowSellModal] = useState(false);
-
-  const fetchMarketplace = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`${API_URL}/shop/products`);
-      if (!res.ok) throw new Error("Failed to fetch products");
-      const data = await res.json();
-      setProducts(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchLibrary = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const token = await getToken({ template: "fullname" });
-      const res = await fetch(`${API_URL}/shop/my-library`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch library");
-      const data = await res.json();
-      setLibraryItems(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    if (activeTab === "marketplace") {
-      fetchMarketplace();
-    } else {
-      fetchLibrary();
-    }
-  }, [activeTab, fetchMarketplace, fetchLibrary]);
-
-  const handleBuy = async (product: Product) => {
-    // open confirmation modal handled by parent component render
-    setConfirmProduct(product);
-    setConfirmOpen(true);
-  };
-
-  return (
-    <div className="shop-container">
-      <PurchaseConfirmation
-        open={confirmOpen}
-        product={confirmProduct}
-        lang={lang}
-        onConfirm={async () => {
-          if (!confirmProduct) return;
-          setConfirmOpen(false);
-          try {
-            const token = await getToken({ template: "fullname" });
-            const res = await fetch(
-              `${API_URL}/shop/products/${confirmProduct.id}/buy`,
-              {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            if (!res.ok) {
-              const errData = await res.json();
-              showAlert(errData.detail || "Purchase failed");
-              return;
-            }
-            showAlert(TEXT[lang].alertProductBought);
-            fetchMarketplace();
-          } catch (err: any) {
-            showAlert(err.message || "Purchase failed");
-          } finally {
-            setConfirmProduct(null);
-          }
-        }}
-        onCancel={() => {
-          setConfirmOpen(false);
-          setConfirmProduct(null);
-        }}
-      />
-      <header className="main-header">
-        <div className="shop-header">
-          <h1>{TEXT[lang].shop}</h1>
-          <button
-            className="sell-item-btn"
-            onClick={() => setShowSellModal(true)}
-          >
-            <span>{TEXT[lang].sellItem}</span>
-            <svg
-              viewBox="0 0 24 24"
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </button>
-        </div>
-      </header>
-      <nav className="shop-nav">
-        <button
-          className={`shop-tab ${activeTab === "marketplace" ? "active" : ""}`}
-          onClick={() => setActiveTab("marketplace")}
-        >
-          {TEXT[lang].marketplace}
-        </button>
-        <button
-          className={`shop-tab ${activeTab === "library" ? "active" : ""}`}
-          onClick={() => setActiveTab("library")}
-        >
-          {TEXT[lang].myLibrary}
-        </button>
-      </nav>
-
-      {error && <div className="error-message">{error}</div>}
-
-      {loading ? (
-        <div className="loading-message">{TEXT[lang].loading}</div>
-      ) : activeTab === "marketplace" ? (
-        products.length > 0 ? (
-          <div className="product-list">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onBuy={handleBuy}
-                lang={lang}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="no-posts-message">{TEXT[lang].noProducts}</div>
-        )
-      ) : libraryItems.length > 0 ? (
-        <div className="library-list">
-          {libraryItems.map((item) => (
-            <div key={item.product.id} className="library-item">
-              <div className="library-item-info">
-                <h3 className="product-title">{item.product.title}</h3>
-                <div className="product-seller">
-                  <span>
-                    {TEXT[lang].seller}: {item.product.seller_name}
-                  </span>
-                </div>
-              </div>
-              <a
-                href={item.product.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="download-btn"
-              >
-                {TEXT[lang].download}
-              </a>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="no-posts-message">{TEXT[lang].noLibraryItems}</div>
-      )}
-
-      {showSellModal && (
-        <SellProductModal
-          onClose={() => setShowSellModal(false)}
-          onCreated={(_product) => {
-            setShowSellModal(false);
-            showAlert(TEXT[lang].alertProductCreated);
-            fetchMarketplace(); // Refresh list after creating
-          }}
-          lang={lang}
-        />
-      )}
-    </div>
-  );
-}
-
-function ProfilePage() {
-  const { user, isSignedIn } = useUser();
-  const { getToken } = useAuth();
-  const [activeTab, setActiveTab] = useState<"posts" | "level">("posts");
-  const [userPosts, setUserPosts] = useState<PostDisponivel[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [coins, setCoins] = useState<number>(0);
-  const { lang } = useLang();
-
-  // Show sign in screen if not signed in
-  if (!isSignedIn) {
-    return (
-      <main className="main-feed">
-        <header className="main-header">
-          <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
-        </header>
-        <div className="profile-container">
-          <div className="profile-signin">
-            <h2>{lang === "fa" ? "لطفا وارد شوید" : "Please Sign In"}</h2>
-            <SignInButton>
-              <button className="sign-out-button">
-                {lang === "fa" ? "ورود به حساب کاربری" : "Sign In"}
-              </button>
-            </SignInButton>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  const fetchUserPosts = async () => {
-    try {
-      setLoading(true);
-      const token = await getToken({ template: "fullname" });
-      const [postsResponse, coinsResponse] = await Promise.all([
-        fetch(`${API_URL}/myposts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_URL}/getcoins`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      if (!postsResponse.ok) throw new Error("Failed to fetch user posts");
-      if (!coinsResponse.ok) throw new Error("Failed to fetch user coins");
-
-      const userPosts = await postsResponse.json();
-      const userCoins = await coinsResponse.json();
-
-      setUserPosts(userPosts);
-      setCoins(userCoins);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchUserPosts();
-    }
-  }, [user?.id]);
-
-  const handleLike = async (id: string) => {
-    try {
-      const token = await getToken({ template: "fullname" });
-      const post = userPosts.find((p) => p.id === id);
-      const hasLiked = post?.likes.includes(user?.id || "");
-
-      const res = await fetch(`${API_URL}/posts/${id}/like`, {
-        method: hasLiked ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const updated = await res.json();
-      setUserPosts((prev) =>
-        prev.map((p) => (p.id === updated.id ? updated : p))
-      );
-    } catch (err) {
-      console.error("Failed to update like:", err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const token = await getToken({ template: "fullname" });
-      await fetch(`${API_URL}/posts/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setUserPosts((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error("Failed to delete post:", err);
-    }
-  };
-
-  return (
-    <main className="main-feed">
-      <header className="main-header">
-        <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
-          {lang === "fa" ? "پروفایل" : "Profile"}
-        </h1>
-      </header>
-      <div className="profile-container">
-        <div className="profile-layout">
-          <div className="profile-info-section">
-            <div className="profile-picture-container">
-              <UserButton
-                appearance={{
-                  elements: { avatarBox: { width: 120, height: 120 } },
-                }}
-              />
-            </div>
-            <h2 className="profile-name">
-              {user?.fullName ||
-                user?.username ||
-                user?.emailAddresses?.[0]?.emailAddress}
-            </h2>
-            <div className="profile-id">{user?.id}</div>
-            <SignOutButton>
-              <button className="sign-out-button">
-                {lang === "fa" ? "خروج" : "Sign Out"}
-              </button>
-            </SignOutButton>
-          </div>
-
-          <div className="profile-content-section">
-            <nav className="profile-nav">
-              <button
-                className={`profile-tab ${
-                  activeTab === "posts" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("posts")}
-              >
-                {lang === "fa" ? "پست‌ها" : "Posts"}
-              </button>
-              <button
-                className={`profile-tab ${
-                  activeTab === "level" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("level")}
-              >
-                {lang === "fa" ? "سطح" : "Level"}
-              </button>
-              <div className="tab-indicator"></div>
-            </nav>
-            <div className="profile-content">
-              {activeTab === "posts" ? (
-                <div className="profile-posts">
-                  {loading ? (
-                    <div className="loading-message">
-                      {lang === "fa" ? "در حال بارگذاری..." : "Loading..."}
-                    </div>
-                  ) : error ? (
-                    <div className="error-message">{error}</div>
-                  ) : userPosts.length === 0 ? (
-                    <div className="no-posts-message">
-                      {lang === "fa"
-                        ? "هنوز پستی ندارید"
-                        : "You haven't created any posts yet"}
-                    </div>
-                  ) : (
-                    <ul className="post-list">
-                      {userPosts.map((post) => (
-                        <PostCard
-                          key={post.id}
-                          post={post}
-                          onLike={handleLike}
-                          onDelete={handleDelete}
-                          currentUserId={user?.id}
-                          showAlert={() => {}}
-                        />
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : (
-                <div className="profile-level">
-                  <UserCoinsWithBadge
-                    coins={coins}
-                    isLoading={loading}
-                    lang={lang}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function detectFarsi(text: string) {
-  return /[\u0600-\u06FF]/.test(text);
-}
-
-function FormattingToolbar({
-  onFormat,
-}: {
-  onFormat: (format: string, value?: string) => void;
-}) {
-  return (
-    <div className="formatting-toolbar">
-      <button
-        type="button"
-        className="format-btn"
-        onClick={() => onFormat("bold")}
-      >
-        Bold
-      </button>
-      <button
-        type="button"
-        className="format-btn"
-        onClick={() => onFormat("italic")}
-      >
-        Italic
-      </button>
-      <button
-        type="button"
-        className="format-btn"
-        onClick={() => onFormat("code")}
-      >
-        Code
-      </button>
-      <button
-        type="button"
-        className="format-btn"
-        onClick={() => onFormat("math")}
-      >
-        Math
-      </button>
-      <button
-        type="button"
-        className="format-btn"
-        onClick={() => onFormat("link")}
-      >
-        Link
-      </button>
-    </div>
-  );
-}
-
-function CreatePostModal({
-  onClose,
-  onCreated,
-}: {
-  onClose: () => void;
-  onCreated: (post: PostDisponivel) => void;
-}) {
-  const { lang } = useLang();
-  const [title, setTitle] = useState("");
-  const [contains, setContains] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { getToken } = useAuth();
-  const [titleRef, setTitleRef] = useState<HTMLInputElement | null>(null);
-  const [contentRef, setContentRef] = useState<HTMLTextAreaElement | null>(
-    null
-  );
-
-  const handleFormat = (format: string) => {
-    const activeRef =
-      document.activeElement === titleRef ? titleRef : contentRef;
-    if (!activeRef) return;
-
-    const start = activeRef.selectionStart || 0;
-    const end = activeRef.selectionEnd || 0;
-    const text = activeRef.value;
-    const selectedText = text.substring(start, end);
-
-    let formattedText = "";
-    switch (format) {
-      case "bold":
-        formattedText = `**${selectedText || "bold text"}**`;
-        break;
-      case "italic":
-        formattedText = `*${selectedText || "italic text"}*`;
-        break;
-      case "code":
-        formattedText = `\`${selectedText || "code"}\``;
-        break;
-      case "math":
-        formattedText = `$$${selectedText || "x^2 + y^2 = z^2"}$$`;
-        break;
-      case "link":
-        formattedText = `[${selectedText || "link text"}](url)`;
-        break;
-    }
-
-    const newText =
-      text.substring(0, start) + formattedText + text.substring(end);
-    if (activeRef === titleRef) setTitle(newText);
-    else setContains(newText);
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.length < 3 || contains.length < 3) {
-      setError(
-        lang === "fa"
-          ? "عنوان و متن باید حداقل ۳ کاراکتر باشند."
-          : "Title and content must be at least 3 characters."
-      );
-      return;
-    }
-    setError("");
-    setLoading(true);
-    const token = await getToken({ template: "fullname" });
-    try {
-      const res = await fetch(`${API_URL}/posts`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ title, contains }),
-      });
-      if (!res.ok) throw new Error("Failed to create post");
-      const post = await res.json();
-      setTitle("");
-      setContains("");
-      onCreated(post);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="popup-backdrop" onClick={onClose}>
-      <form
-        className="popup-card create-modal no-scroll"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={handleCreate}
-      >
-        <button className="popup-close" onClick={onClose} type="button">
-          ×
-        </button>
-        <h2>{TEXT[lang].addPostTitle}</h2>
-        <FormattingToolbar onFormat={handleFormat} />
-        <input
-          ref={setTitleRef}
-          type="text"
-          placeholder={TEXT[lang].postTitle}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          minLength={3}
-          className={
-            detectFarsi(title) || lang === "fa" ? "farsi-font" : "latin-font"
-          }
-          style={{
-            fontFamily:
-              detectFarsi(title) || lang === "fa"
-                ? "Vazirmatn, sans-serif"
-                : "Inter, sans-serif",
-          }}
-        />
-        <textarea
-          ref={setContentRef}
-          placeholder={TEXT[lang].postContent}
-          value={contains}
-          onChange={(e) => setContains(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Tab") {
-              e.preventDefault();
-              const start = e.currentTarget.selectionStart;
-              const end = e.currentTarget.selectionEnd;
-              const newValue =
-                contains.substring(0, start) + "\t" + contains.substring(end);
-              setContains(newValue);
-              setTimeout(() => {
-                e.currentTarget.selectionStart = e.currentTarget.selectionEnd =
-                  start + 1;
-              }, 0);
-            }
-          }}
-          required
-          minLength={3}
-          className={
-            detectFarsi(contains) || lang === "fa" ? "farsi-font" : "latin-font"
-          }
-          style={{
-            fontFamily:
-              detectFarsi(contains) || lang === "fa"
-                ? "Vazirmatn, sans-serif"
-                : "Inter, sans-serif",
-          }}
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? TEXT[lang].posting : TEXT[lang].post}
-        </button>
-        {error && <div className="error">{error}</div>}
-      </form>
-    </div>
-  );
-}
-
-function CommentFormModal({
-  onClose,
-  onSubmit,
-  loading,
-  error,
-}: {
-  onClose: () => void;
-  onSubmit: (content: string) => Promise<void>;
-  loading: boolean;
-  error: string;
-}) {
-  const { lang } = useLang();
-  const [commentContent, setCommentContent] = useState("");
-  const [commentRef, setCommentRef] = useState<HTMLTextAreaElement | null>(
-    null
-  );
-  const isFarsi = detectFarsi(commentContent);
-
-  const handleFormat = (format: string) => {
-    if (!commentRef) return;
-
-    const start = commentRef.selectionStart || 0;
-    const end = commentRef.selectionEnd || 0;
-    const text = commentRef.value;
-    const selectedText = text.substring(start, end);
-
-    let formattedText = "";
-    switch (format) {
-      case "bold":
-        formattedText = `**${selectedText || "bold text"}**`;
-        break;
-      case "italic":
-        formattedText = `*${selectedText || "italic text"}*`;
-        break;
-      case "code":
-        formattedText = `\`${selectedText || "code"}\``;
-        break;
-      case "math":
-        formattedText = `$$${selectedText || "x^2 + y^2 = z^2"}$$`;
-        break;
-      case "link":
-        formattedText = `[${selectedText || "link text"}](url)`;
-        break;
-    }
-
-    const newText =
-      text.substring(0, start) + formattedText + text.substring(end);
-    setCommentContent(newText);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentContent.trim()) {
-      return;
-    }
-    await onSubmit(commentContent);
-    setCommentContent("");
-  };
-
-  return (
-    <div className="popup-backdrop" onClick={onClose}>
-      <form
-        className="popup-card comment-form-modal"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={handleSubmit}
-      >
-        <button className="popup-close" onClick={onClose} type="button">
-          ×
-        </button>
-        <h2>{TEXT[lang].addComment}</h2>
-        <FormattingToolbar onFormat={handleFormat} />
-        <textarea
-          ref={setCommentRef}
-          placeholder={TEXT[lang].commentPlaceholder}
-          value={commentContent}
-          onChange={(e) => setCommentContent(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Tab") {
-              e.preventDefault();
-              const start = e.currentTarget.selectionStart;
-              const end = e.currentTarget.selectionEnd;
-              const newValue =
-                commentContent.substring(0, start) +
-                "\t" +
-                commentContent.substring(end);
-              setCommentContent(newValue);
-              setTimeout(() => {
-                e.currentTarget.selectionStart = e.currentTarget.selectionEnd =
-                  start + 1;
-              }, 0);
-            }
-          }}
-          className={isFarsi || lang === "fa" ? "farsi-font" : "latin-font"}
-          style={{
-            fontFamily:
-              isFarsi || lang === "fa"
-                ? "Vazirmatn, sans-serif"
-                : "Inter, sans-serif",
-          }}
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? TEXT[lang].commenting : TEXT[lang].post}
-        </button>
-        {error && <div className="error">{error}</div>}
-      </form>
-    </div>
-  );
-}
-
 function MainFeed({
   newPost,
   setNewPost,
   showAlert,
+  setPage,
 }: {
   showModal: boolean;
   setShowModal: (b: boolean) => void;
   newPost: PostDisponivel | null;
   setNewPost: (p: PostDisponivel | null) => void;
   showAlert: (message: string) => void;
+  setPage: (page: PageType) => void;
 }) {
   const { user } = useUser();
   useTheme();
@@ -1864,7 +902,21 @@ function MainFeed({
   return (
     <main className="main-feed">
       <header className="main-header">
-        <h1>{TEXT[lang].feed}</h1>
+          <h1>{TEXT[lang].feed}</h1>
+        <div className="main-header-content">
+          <button
+            className="leaderboard-icon-btn"
+            onClick={() => setPage("leaderboard")}
+            title={TEXT[lang].leaderboard}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="8" width="4" height="12" rx="1" />
+              <rect x="10" y="4" width="4" height="16" rx="1" />
+              <rect x="17" y="12" width="4" height="8" rx="1" />
+            </svg>
+          </button>
+          <div className="header-placeholder"></div>
+        </div>
       </header>
       {error && <div className="error">{error}</div>}
       <div className="post-feed-scroll hide-scrollbar">
@@ -2367,6 +1419,1016 @@ function AlertBar({
     <div className="alert-bar">
       <span>{message}</span>
       <button onClick={onClose}>×</button>
+    </div>
+  );
+}
+
+function App() {
+  const [page, setPage] = useState<PageType>("feed");
+  const [showModal, setShowModal] = useState(false);
+  const [newPost, setNewPost] = useState<PostDisponivel | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  const { user } = useUser();
+  const { getToken } = useAuth();
+
+  const { lang } = useLang();
+
+  const showAlert = useCallback((message: string) => {
+    setAlertMessage(message);
+    setTimeout(() => {
+      setAlertMessage(null);
+    }, 3300);
+  }, []);
+
+  useEffect(() => {
+    Promise.all([new Promise((resolve) => setTimeout(resolve, 500))]).then(
+      () => {
+        setPageLoading(false);
+      }
+    );
+  }, []);
+  const _is_admin = (user: any) => {
+    if (!user) return false;
+    const admin_ids = (import.meta.env.VITE_ADMIN_IDS || "").split(",");
+    return admin_ids.includes(user.id);
+  };
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === "/") {
+      setPage("feed");
+    } else if (path === "/shop") {
+      setPage("shop");
+    } else if (path === "/leaderboard") {
+      setPage("leaderboard");
+    } else if (path === "/admin") {
+      // Only set admin page if user is admin
+      if (_is_admin(user)) {
+        setPage("admin");
+      } else {
+        window.history.pushState(null, "", "/");
+        setPage("feed");
+      }
+    } else {
+      const match = path.match(/^\/(\d+)$/);
+      if (match) {
+        setSelectedPostId(match[1]);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsLoading(true);
+      setTimeout(() => setIsLoading(false), 1000);
+    };
+
+    window.addEventListener("popstate", handleRouteChange);
+    return () => window.removeEventListener("popstate", handleRouteChange);
+  }, []);
+
+  const handlePageChange = (newPage: PageType) => {
+    setPage(newPage);
+    setSelectedPostId(null);
+  };
+
+  const addNewUser = useCallback(async () => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      const response = await fetch(`${API_URL}/newuser`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create user");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    if (user) {
+      addNewUser();
+    }
+  }, [user, addNewUser]);
+
+  if (pageLoading) {
+    return <LoadingBar isLoading={true} />;
+  }
+
+  return (
+    <ThemeProvider>
+      <LangProvider>
+        <div className="app-layout">
+          <SideNavigation currentPage={page} setPage={handlePageChange} />
+          <BottomNavigation currentPage={page} setPage={handlePageChange} />
+          {!selectedPostId && page === "feed" && (
+            <button className="fab-button" onClick={() => setShowModal(true)}>
+              <div className="fab-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </div>
+              <span className="fab-text">{TEXT[lang].addPost}</span>
+            </button>
+          )}
+          <LoadingBar isLoading={isLoading} />
+          {alertMessage && (
+            <AlertBar
+              message={alertMessage}
+              onClose={() => setAlertMessage(null)}
+            />
+          )}
+          <div className={`page-container ${isLoading ? "loading" : ""}`}>
+            {selectedPostId ? (
+              <PostPage
+                postId={selectedPostId}
+                setSelectedPostId={setSelectedPostId}
+                showAlert={showAlert}
+              />
+            ) : (
+              <MainArea
+                page={page}
+                setShowModal={setShowModal}
+                showModal={showModal}
+                newPost={newPost}
+                setNewPost={setNewPost}
+                setPage={handlePageChange}
+                showAlert={showAlert}
+              />
+            )}
+          </div>
+          <Footer />
+        </div>
+      </LangProvider>
+    </ThemeProvider>
+  );
+}
+
+function MainArea({
+  page,
+  setShowModal,
+  showModal,
+  newPost,
+  setNewPost,
+  setPage,
+  showAlert,
+}: {
+  page: PageType;
+  setShowModal: (b: boolean) => void;
+  showModal: boolean;
+  newPost: PostDisponivel | null;
+  setNewPost: (p: PostDisponivel | null) => void;
+  setPage: (p: PageType) => void;
+  showAlert: (message: string) => void;
+}) {
+  const { lang } = useLang();
+  const { user } = useUser();
+  const _is_admin = (user: any) => {
+    if (!user) return false;
+    const admin_ids = (import.meta.env.VITE_ADMIN_IDS || "").split(",");
+    return admin_ids.includes(user.id);
+  };
+
+  // Redirect if not admin
+  useEffect(() => {
+    if (page === "admin" && !_is_admin(user)) {
+      setPage("feed");
+    }
+  }, [page, user, setPage]);
+
+  return (
+    <div className="page-wrapper">
+      <div className="content-area">
+        {page === "profile" && <ProfilePage />}
+        {page === "feed" && (
+          <MainFeed
+            showModal={showModal}
+            setShowModal={setShowModal}
+            newPost={newPost}
+            setNewPost={setNewPost}
+            showAlert={showAlert}
+            setPage={setPage}
+          />
+        )}
+        {page === "about" && <AboutPage />}
+        {page === "settings" && <SettingsPage />}
+        {page === "shop" && <ShopPage showAlert={showAlert} />}
+        {page === "leaderboard" && <Leaderboard lang={lang} />}
+        {page === "admin" && _is_admin(user) && (
+          <AdminPanel lang={lang} showAlert={showAlert} />
+        )}
+        {showModal && (
+          <CreatePostModal
+            onClose={() => setShowModal(false)}
+            onCreated={(post) => {
+              setShowModal(false);
+              setNewPost(post);
+              showAlert(TEXT[lang].alertPostCreated);
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ===== SHOP COMPONENTS =====
+
+// `SellProductModal` has been moved to `src/components/SellProductModal.tsx` and is imported at the top of this file.
+
+function ProductCard({
+  product,
+  onBuy,
+  lang,
+}: {
+  product: Product;
+  onBuy: (product: Product) => void;
+  lang: "en" | "fa";
+}) {
+  const [sellerCoins, setSellerCoins] = useState<number>(0);
+  const [buyerCount, setBuyerCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchSellerCoins = async () => {
+      try {
+        const res = await fetch(`${API_URL}/users/${product.seller_id}/coins`);
+        if (res.ok) {
+          const coins = await res.json();
+          setSellerCoins(coins);
+        }
+      } catch (err) {
+        console.error("Failed to fetch seller coins:", err);
+      }
+    };
+
+    const fetchBuyerCount = async () => {
+      try {
+        const res = await fetch(`${API_URL}/shop/products/${product.id}/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          setBuyerCount(data.purchase_count || 0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch buyer count:", err);
+      }
+    };
+
+    fetchSellerCoins();
+    fetchBuyerCount();
+  }, [product.seller_id]);
+
+  return (
+    <div className="product-card">
+      <div className="product-seller">
+        <span>{TEXT[lang].seller}:</span>
+        <UserBadge
+          coins={sellerCoins}
+          lang={lang}
+          size="small"
+          showTooltip={true}
+          creator={product.seller_name}
+        />
+        <span className="product-buyer-count">
+          {buyerCount} {lang === "fa" ? "خریدار" : "buyers"}
+        </span>
+      </div>
+      <h3 className="product-title">{product.title}</h3>
+      <p className="product-description">{product.description}</p>
+      <div className="product-footer">
+        <div className="product-price">
+          <CoinIcon />
+          <span>{product.price}</span>
+        </div>
+        <button className="buy-btn" onClick={() => onBuy(product)}>
+          {TEXT[lang].buy}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
+  const { lang } = useLang();
+  const { getToken } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmProduct, setConfirmProduct] = useState<Product | null>(null);
+  const [activeTab, setActiveTab] = useState<"marketplace" | "library">(
+    "marketplace"
+  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showSellModal, setShowSellModal] = useState(false);
+
+  const fetchMarketplace = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/shop/products`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      setProducts(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchLibrary = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const token = await getToken({ template: "fullname" });
+      const res = await fetch(`${API_URL}/shop/my-library`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch library");
+      const data = await res.json();
+      setLibraryItems(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    if (activeTab === "marketplace") {
+      fetchMarketplace();
+    } else {
+      fetchLibrary();
+    }
+  }, [activeTab, fetchMarketplace, fetchLibrary]);
+
+  const handleBuy = async (product: Product) => {
+    // open confirmation modal handled by parent component render
+    setConfirmProduct(product);
+    setConfirmOpen(true);
+  };
+
+  return (
+    <div className="shop-container">
+      <PurchaseConfirmation
+        open={confirmOpen}
+        product={confirmProduct}
+        lang={lang}
+        onConfirm={async () => {
+          if (!confirmProduct) return;
+          setConfirmOpen(false);
+          try {
+            const token = await getToken({ template: "fullname" });
+            const res = await fetch(
+              `${API_URL}/shop/products/${confirmProduct.id}/buy`,
+              {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (!res.ok) {
+              const errData = await res.json();
+              showAlert(errData.detail || "Purchase failed");
+              return;
+            }
+            showAlert(TEXT[lang].alertProductBought);
+            fetchMarketplace();
+          } catch (err: any) {
+            showAlert(err.message || "Purchase failed");
+          } finally {
+            setConfirmProduct(null);
+          }
+        }}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setConfirmProduct(null);
+        }}
+      />
+      <header className="main-header">
+        <div className="shop-header">
+          <h1>{TEXT[lang].shop}</h1>
+          <button
+            className="sell-item-btn"
+            onClick={() => setShowSellModal(true)}
+          >
+            <span>{TEXT[lang].sellItem}</span>
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <nav className="shop-nav">
+        <button
+          className={`shop-tab ${activeTab === "marketplace" ? "active" : ""}`}
+          onClick={() => setActiveTab("marketplace")}
+        >
+
+          {TEXT[lang].marketplace}
+        </button>
+        <button
+
+          className={`shop-tab ${activeTab === "library" ? "active" : ""}`}
+          onClick={() => setActiveTab("library")}
+        >
+          {TEXT[lang].myLibrary}
+        </button>
+      </nav>
+
+      {error && <div className="error-message">{error}</div>}
+
+      {loading ? (
+        <div className="loading-message">{TEXT[lang].loading}</div>
+      ) : activeTab === "marketplace" ? (
+        products.length > 0 ? (
+          <div className="product-list">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onBuy={handleBuy}
+                lang={lang}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="no-posts-message">{TEXT[lang].noProducts}</div>
+        )
+      ) : libraryItems.length > 0 ? (
+        <div className="library-list">
+          {libraryItems.map((item) => (
+            <div key={item.product.id} className="library-item">
+              <div className="library-item-info">
+                <h3 className="product-title">{item.product.title}</h3>
+                <div className="product-seller">
+                  <span>
+                    {TEXT[lang].seller}: {item.product.seller_name}
+                  </span>
+                </div>
+              </div>
+              <a
+                href={item.product.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="download-btn"
+              >
+                {TEXT[lang].download}
+              </a>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="no-posts-message">{TEXT[lang].noLibraryItems}</div>
+      )}
+
+      {showSellModal && (
+        <SellProductModal
+          onClose={() => setShowSellModal(false)}
+          onCreated={(_product) => {
+            setShowSellModal(false);
+            showAlert(TEXT[lang].alertProductCreated);
+            fetchMarketplace(); // Refresh list after creating
+          }}
+          lang={lang}
+        />
+      )}
+    </div>
+  );
+}
+
+function ProfilePage() {
+  const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
+  const [activeTab, setActiveTab] = useState<"posts" | "level">("posts");
+  const [userPosts, setUserPosts] = useState<PostDisponivel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [coins, setCoins] = useState<number>(0);
+  const { lang } = useLang();
+
+  // Show sign in screen if not signed in
+  if (!isSignedIn) {
+    return (
+      <main className="main-feed">
+        <header className="main-header">
+          <h1>{lang === "fa" ? "پروفایل" : "Profile"}</h1>
+        </header>
+        <div className="profile-container">
+          <div className="profile-signin">
+            <h2>{lang === "fa" ? "لطفا وارد شوید" : "Please Sign In"}</h2>
+            <SignInButton>
+              <button className="sign-out-button">
+                {lang === "fa" ? "ورود به حساب کاربری" : "Sign In"}
+              </button>
+            </SignInButton>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const fetchUserPosts = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken({ template: "fullname" });
+      const [postsResponse, coinsResponse] = await Promise.all([
+        fetch(`${API_URL}/myposts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/getcoins`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      if (!postsResponse.ok) throw new Error("Failed to fetch user posts");
+      if (!coinsResponse.ok) throw new Error("Failed to fetch user coins");
+
+      const userPosts = await postsResponse.json();
+      const userCoins = await coinsResponse.json();
+
+      setUserPosts(userPosts);
+      setCoins(userCoins);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserPosts();
+    }
+  }, [user?.id]);
+
+  const handleLike = async (id: string) => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      const post = userPosts.find((p) => p.id === id);
+      const hasLiked = post?.likes.includes(user?.id || "");
+
+      const res = await fetch(`${API_URL}/posts/${id}/like`, {
+        method: hasLiked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updated = await res.json();
+      setUserPosts((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p))
+      );
+    } catch (err) {
+      console.error("Failed to update like:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const token = await getToken({ template: "fullname" });
+      await fetch(`${API_URL}/posts/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUserPosts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    }
+  };
+
+  return (
+    <main className="main-feed">
+      <header className="main-header">
+        <h1 className={lang === "fa" ? "farsi-font" : "latin-font"}>
+          {lang === "fa" ? "پروفایل" : "Profile"}
+        </h1>
+      </header>
+      <div className="profile-container">
+        <div className="profile-layout">
+          <div className="profile-info-section">
+            <div className="profile-picture-container">
+              <UserButton
+                appearance={{
+                  elements: { avatarBox: { width: 120, height: 120 } },
+                }}
+              />
+            </div>
+            <h2 className="profile-name">
+              {user?.fullName ||
+                user?.username ||
+                user?.emailAddresses?.[0]?.emailAddress}
+            </h2>
+            <div className="profile-id">{user?.id}</div>
+            <SignOutButton>
+              <button className="sign-out-button">
+                {lang === "fa" ? "خروج" : "Sign Out"}
+              </button>
+            </SignOutButton>
+          </div>
+
+          <div className="profile-content-section">
+            <nav className="profile-nav">
+              <button
+                className={`profile-tab ${
+                  activeTab === "posts" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("posts")}
+              >
+                {lang === "fa" ? "پست‌ها" : "Posts"}
+              </button>
+              <button
+                className={`profile-tab ${
+                  activeTab === "level" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("level")}
+              >
+                {lang === "fa" ? "سطح" : "Level"}
+              </button>
+              <div className="tab-indicator"></div>
+            </nav>
+            <div className="profile-content">
+              {activeTab === "posts" ? (
+                <div className="profile-posts">
+                  {loading ? (
+                    <div className="loading-message">
+                      {lang === "fa" ? "در حال بارگذاری..." : "Loading..."}
+                    </div>
+                  ) : error ? (
+                    <div className="error-message">{error}</div>
+                  ) : userPosts.length === 0 ? (
+                    <div className="no-posts-message">
+                      {lang === "fa"
+                        ? "هنوز پستی وجود ندارد"
+                        : "You haven't created any posts yet"}
+                    </div>
+                  ) : (
+                    <ul className="post-list">
+                      {userPosts.map((post) => (
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          onLike={handleLike}
+                          onDelete={handleDelete}
+                          currentUserId={user?.id}
+                          showAlert={() => {}}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <div className="profile-level">
+                  <UserCoinsWithBadge
+                    coins={coins}
+                    isLoading={loading}
+                    lang={lang}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function detectFarsi(text: string) {
+  return /[\u0600-\u06FF]/.test(text);
+}
+
+function FormattingToolbar({
+  onFormat,
+}: {
+  onFormat: (format: string, value?: string) => void;
+}) {
+  return (
+    <div className="formatting-toolbar">
+      <button
+        type="button"
+        className="format-btn"
+        onClick={() => onFormat("bold")}
+      >
+        Bold
+      </button>
+      <button
+        type="button"
+        className="format-btn"
+        onClick={() => onFormat("italic")}
+      >
+        Italic
+      </button>
+      <button
+        type="button"
+        className="format-btn"
+        onClick={() => onFormat("code")}
+      >
+        Code
+      </button>
+      <button
+        type="button"
+        className="format-btn"
+        onClick={() => onFormat("math")}
+      >
+        Math
+      </button>
+      <button
+        type="button"
+        className="format-btn"
+        onClick={() => onFormat("link")}
+      >
+        Link
+      </button>
+    </div>
+  );
+}
+
+function CreatePostModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (post: PostDisponivel) => void;
+}) {
+  const { lang } = useLang();
+  const [title, setTitle] = useState("");
+  const [contains, setContains] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { getToken } = useAuth();
+  const [titleRef, setTitleRef] = useState<HTMLInputElement | null>(null);
+  const [contentRef, setContentRef] = useState<HTMLTextAreaElement | null>(
+    null
+  );
+
+  const handleFormat = (format: string) => {
+    const activeRef =
+      document.activeElement === titleRef ? titleRef : contentRef;
+    if (!activeRef) return;
+
+    const start = activeRef.selectionStart || 0;
+    const end = activeRef.selectionEnd || 0;
+    const text = activeRef.value;
+    const selectedText = text.substring(start, end);
+
+    let formattedText = "";
+    switch (format) {
+      case "bold":
+        formattedText = `**${selectedText || "bold text"}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText || "italic text"}*`;
+        break;
+      case "code":
+        formattedText = `\`${selectedText || "code"}\``;
+        break;
+      case "math":
+        formattedText = `$$${selectedText || "x^2 + y^2 = z^2"}$$`;
+        break;
+      case "link":
+        formattedText = `[${selectedText || "link text"}](url)`;
+        break;
+    }
+
+    const newText =
+      text.substring(0, start) + formattedText + text.substring(end);
+    if (activeRef === titleRef) setTitle(newText);
+    else setContains(newText);
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.length < 3 || contains.length < 3) {
+      setError(
+        lang === "fa"
+          ? "عنوان و متن باید حداقل ۳ کاراکتر باشند."
+          : "Title and content must be at least 3 characters."
+      );
+      return;
+    }
+    setError("");
+    setLoading(true);
+    const token = await getToken({ template: "fullname" });
+    try {
+      const res = await fetch(`${API_URL}/posts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, contains }),
+      });
+      if (!res.ok) throw new Error("Failed to create post");
+      const post = await res.json();
+      setTitle("");
+      setContains("");
+      onCreated(post);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="popup-backdrop" onClick={onClose}>
+      <form
+        className="popup-card create-modal no-scroll"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={handleCreate}
+      >
+        <button className="popup-close" onClick={onClose} type="button">
+          ×
+        </button>
+        <h2>{TEXT[lang].addPostTitle}</h2>
+        <FormattingToolbar onFormat={handleFormat} />
+        <input
+          ref={setTitleRef}
+          type="text"
+          placeholder={TEXT[lang].postTitle}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          minLength={3}
+          className={
+            detectFarsi(title) || lang === "fa" ? "farsi-font" : "latin-font"
+          }
+          style={{
+            fontFamily:
+              detectFarsi(title) || lang === "fa"
+                ? "Vazirmatn, sans-serif"
+                : "Inter, sans-serif",
+          }}
+        />
+        <textarea
+          ref={setContentRef}
+          placeholder={TEXT[lang].postContent}
+          value={contains}
+          onChange={(e) => setContains(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Tab") {
+              e.preventDefault();
+              const start = e.currentTarget.selectionStart;
+              const end = e.currentTarget.selectionEnd;
+              const newValue =
+                contains.substring(0, start) + "\t" + contains.substring(end);
+              setContains(newValue);
+              setTimeout(() => {
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd =
+                  start + 1;
+              }, 0);
+            }
+          }}
+          required
+          minLength={3}
+          className={
+            detectFarsi(contains) || lang === "fa" ? "farsi-font" : "latin-font"
+          }
+          style={{
+            fontFamily:
+              detectFarsi(contains) || lang === "fa"
+                ? "Vazirmatn, sans-serif"
+                : "Inter, sans-serif",
+          }}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? TEXT[lang].posting : TEXT[lang].post}
+        </button>
+        {error && <div className="error">{error}</div>}
+      </form>
+    </div>
+  );
+}
+
+function CommentFormModal({
+  onClose,
+  onSubmit,
+  loading,
+  error,
+}: {
+  onClose: () => void;
+  onSubmit: (content: string) => Promise<void>;
+  loading: boolean;
+  error: string;
+}) {
+  const { lang } = useLang();
+  const [commentContent, setCommentContent] = useState("");
+  const [commentRef, setCommentRef] = useState<HTMLTextAreaElement | null>(
+    null
+  );
+  const isFarsi = detectFarsi(commentContent);
+
+  const handleFormat = (format: string) => {
+    if (!commentRef) return;
+
+    const start = commentRef.selectionStart || 0;
+    const end = commentRef.selectionEnd || 0;
+    const text = commentRef.value;
+    const selectedText = text.substring(start, end);
+
+    let formattedText = "";
+    switch (format) {
+      case "bold":
+        formattedText = `**${selectedText || "bold text"}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText || "italic text"}*`;
+        break;
+      case "code":
+        formattedText = `\`${selectedText || "code"}\``;
+        break;
+      case "math":
+        formattedText = `$$${selectedText || "x^2 + y^2 = z^2"}$$`;
+        break;
+      case "link":
+        formattedText = `[${selectedText || "link text"}](url)`;
+        break;
+    }
+
+    const newText =
+      text.substring(0, start) + formattedText + text.substring(end);
+    setCommentContent(newText);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentContent.trim()) {
+      return;
+    }
+    await onSubmit(commentContent);
+    setCommentContent("");
+  };
+
+  return (
+    <div className="popup-backdrop" onClick={onClose}>
+      <form
+        className="popup-card comment-form-modal"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={handleSubmit}
+      >
+        <button className="popup-close" onClick={onClose} type="button">
+          ×
+        </button>
+        <h2>{TEXT[lang].addComment}</h2>
+        <FormattingToolbar onFormat={handleFormat} />
+        <textarea
+          ref={setCommentRef}
+          placeholder={TEXT[lang].commentPlaceholder}
+          value={commentContent}
+          onChange={(e) => setCommentContent(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Tab") {
+              e.preventDefault();
+              const start = e.currentTarget.selectionStart;
+              const end = e.currentTarget.selectionEnd;
+              const newValue =
+                commentContent.substring(0, start) +
+                "\t" +
+                commentContent.substring(end);
+              setCommentContent(newValue);
+              setTimeout(() => {
+                e.currentTarget.selectionStart = e.currentTarget.selectionEnd =
+                  start + 1;
+              }, 0);
+            }
+          }}
+          className={isFarsi || lang === "fa" ? "farsi-font" : "latin-font"}
+          style={{
+            fontFamily:
+              isFarsi || lang === "fa"
+                ? "Vazirmatn, sans-serif"
+                : "Inter, sans-serif",
+          }}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? TEXT[lang].commenting : TEXT[lang].post}
+        </button>
+        {error && <div className="error">{error}</div>}
+      </form>
     </div>
   );
 }

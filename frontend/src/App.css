@@ -566,6 +566,52 @@ body::before {
     text-align: center;
 }
 
+.main-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.leaderboard-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.leaderboard-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+}
+
+.leaderboard-icon-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.header-placeholder {
+    width: 40px; /* Same size as button to keep title centered */
+    height: 40px;
+    display: none; /* Hidden by default */
+}
+
+@media (max-width: 1024px) {
+    .leaderboard-icon-btn,
+    .header-placeholder {
+        display: flex;
+    }
+}
+
 .main-header h1 {
     margin: 0;
     font-size: 32px;
@@ -874,6 +920,7 @@ body::before {
     right: 0;
     bottom: 0;
     background: var(--popup-bg);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -902,6 +949,7 @@ body::before {
     overflow-y: auto;
     position: relative;
     animation: popupIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes popupIn {
@@ -2076,4 +2124,89 @@ body::before {
 .sell-modal input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* Add/update these styles in App.css */
+.leaderboard-container {
+  width: 100%;
+  max-width: none;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin-top: 32px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  background: var(--color-card);
+  border: 2px solid var(--color-border);
+  border-radius: 16px;
+  gap: 24px;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.leaderboard-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-item .rank {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 60px;
+  text-align: center;
+}
+
+.leaderboard-item .name {
+  flex: 1;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.leaderboard-item .coins {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  padding: 8px 16px;
+  background: linear-gradient(to right, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.2));
+  border-radius: 20px;
+}
+
+@media (max-width: 768px) {
+  .leaderboard-container {
+    padding: 0 16px;
+  }
+
+  .leaderboard-item {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .leaderboard-item .rank {
+    font-size: 1.2rem;
+    min-width: 40px;
+  }
+
+  .leaderboard-item .name {
+    font-size: 1rem;
+  }
+
+  .leaderboard-item .coins {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
 }
