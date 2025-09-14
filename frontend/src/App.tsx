@@ -1694,6 +1694,7 @@ function ProductCard({
     <div className="product-card">
       <div className="product-seller">
         <span>{TEXT[lang].seller}:</span>
+        <span>{product.seller_name}</span>
         <UserBadge
           coins={sellerCoins}
           lang={lang}
