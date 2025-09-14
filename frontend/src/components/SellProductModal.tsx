@@ -151,23 +151,38 @@ const SellProductModal: React.FC<SellProductModalProps> = ({
           min="1"
         />
 
-        <div className="upload-method-selector">
-          <button
-            type="button"
-            className={`method-btn ${
-              uploadMethod === "upload" ? "active" : ""
+        <div className="upload-method-toggle">
+          <div
+            className={`toggle-track ${
+              uploadMethod === "upload" ? "left" : "right"
             }`}
-            onClick={() => setUploadMethod("upload")}
+            role="tablist"
+            aria-label="Upload method"
           >
-            {TEXT[lang].uploadFile}
-          </button>
-          <button
-            type="button"
-            className={`method-btn ${uploadMethod === "url" ? "active" : ""}`}
-            onClick={() => setUploadMethod("url")}
-          >
-            {TEXT[lang].useUrl}
-          </button>
+            <button
+              type="button"
+              className={`toggle-option ${
+                uploadMethod === "upload" ? "active" : ""
+              }`}
+              onClick={() => setUploadMethod("upload")}
+              role="tab"
+              aria-selected={uploadMethod === "upload"}
+            >
+              {TEXT[lang].uploadFile}
+            </button>
+            <button
+              type="button"
+              className={`toggle-option ${
+                uploadMethod === "url" ? "active" : ""
+              }`}
+              onClick={() => setUploadMethod("url")}
+              role="tab"
+              aria-selected={uploadMethod === "url"}
+            >
+              {TEXT[lang].useUrl}
+            </button>
+            <div className="toggle-thumb" />
+          </div>
         </div>
 
         {uploadMethod === "upload" ? (

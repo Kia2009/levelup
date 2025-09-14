@@ -19,6 +19,9 @@ import { renderMarkdown } from "./markdown";
 import BadgeProgress from "./components/BadgeProgress";
 import UserBadge from "./components/UserBadge";
 import SellProductModal from "./components/SellProductModal";
+import Leaderboard from "./components/Leaderboard";
+import AdminPanel from "./components/AdminPanel";
+import PurchaseConfirmation from "./components/PurchaseConfirmation";
 
 const TEXT = {
   en: {
@@ -70,6 +73,7 @@ const TEXT = {
     profile: "Profile",
     marketplace: "Marketplace",
     myLibrary: "My Library",
+    leaderboard: "Leaderboard",
     sellItem: "Sell Notebook",
     sellItemTitle: "Sell Your Notebook",
     productTitle: "Notebook Title",
@@ -86,6 +90,7 @@ const TEXT = {
     noProducts: "The marketplace is empty. Sell something!",
     noLibraryItems: "You haven't bought any notebooks yet.",
     seller: "Seller",
+    admin: "Admin",
   },
   fa: {
     home: "خانه",
@@ -136,6 +141,7 @@ const TEXT = {
     alertProductBought: "خرید موفقیت‌آمیز بود! کتابخانه خود را بررسی کنید.",
     marketplace: "فروشگاه",
     myLibrary: "کتابخانه من",
+    leaderboard: "لیدربورد",
     sellItem: "فروش جزوه",
     sellItemTitle: "جزوه خود را بفروشید",
     productTitle: "عنوان جزوه",
@@ -152,6 +158,7 @@ const TEXT = {
     noProducts: "فروشگاه خالی است. شما اولین نفر باشید!",
     noLibraryItems: "شما هنوز هیچ جزوه‌ای نخریده‌اید.",
     seller: "فروشنده",
+    admin: "پنل ادمین",
   },
 };
 
@@ -494,7 +501,14 @@ function UserCoinsWithBadge({
   );
 }
 
-type PageType = "feed" | "about" | "settings" | "profile" | "shop";
+type PageType =
+  | "feed"
+  | "about"
+  | "settings"
+  | "profile"
+  | "shop"
+  | "leaderboard"
+  | "admin";
 type NavProps = {
   currentPage: PageType;
   setPage: (page: PageType) => void;
@@ -595,6 +609,36 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           </svg>
 
           <span>{TEXT[lang].shop}</span>
+        </a>
+
+        <a
+          href="/leaderboard"
+          className={`nav-link ${
+            currentPage === "leaderboard" ? "active" : ""
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("leaderboard");
+          }}
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2l2.9 6.3L22 9.3l-5 4.1 1.2 6.7L12 17.8 5.8 20.1 7 13.4 2 9.3l7.1-1L12 2z" />
+          </svg>
+          <span>{TEXT[lang].leaderboard}</span>
+        </a>
+
+        <a
+          href="/admin"
+          className={`nav-link ${currentPage === "admin" ? "active" : ""}`}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage("admin");
+          }}
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-8 4v6l8 4 8-4v-6l-8-4z" />
+          </svg>
+          <span>{TEXT[lang].admin || "Admin"}</span>
         </a>
 
         <a
@@ -756,9 +800,7 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
 }
 
 function App() {
-  const [page, setPage] = useState<
-    "feed" | "about" | "settings" | "profile" | "shop"
-  >("feed");
+  const [page, setPage] = useState<PageType>("feed");
   const [showModal, setShowModal] = useState(false);
   const [newPost, setNewPost] = useState<PostDisponivel | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
@@ -817,9 +859,7 @@ function App() {
     return () => window.removeEventListener("popstate", handleRouteChange);
   }, []);
 
-  const handlePageChange = (
-    newPage: "feed" | "about" | "settings" | "profile" | "shop"
-  ) => {
+  const handlePageChange = (newPage: PageType) => {
     setPage(newPage);
     setSelectedPostId(null);
   };
@@ -913,12 +953,12 @@ function MainArea({
   setNewPost,
   showAlert,
 }: {
-  page: "feed" | "about" | "settings" | "profile" | "shop";
+  page: PageType;
   setShowModal: (b: boolean) => void;
   showModal: boolean;
   newPost: PostDisponivel | null;
   setNewPost: (p: PostDisponivel | null) => void;
-  setPage: (p: "feed" | "about" | "settings" | "profile" | "shop") => void;
+  setPage: (p: PageType) => void;
   showAlert: (message: string) => void;
 }) {
   const { lang } = useLang();
@@ -938,6 +978,8 @@ function MainArea({
         {page === "about" && <AboutPage />}
         {page === "settings" && <SettingsPage />}
         {page === "shop" && <ShopPage showAlert={showAlert} />}
+        {page === "leaderboard" && <Leaderboard lang={lang} />}
+        {page === "admin" && <AdminPanel lang={lang} showAlert={showAlert} />}
         {showModal && (
           <CreatePostModal
             onClose={() => setShowModal(false)}
@@ -967,6 +1009,7 @@ function ProductCard({
   lang: "en" | "fa";
 }) {
   const [sellerCoins, setSellerCoins] = useState<number>(0);
+  const [buyerCount, setBuyerCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchSellerCoins = async () => {
@@ -981,7 +1024,20 @@ function ProductCard({
       }
     };
 
+    const fetchBuyerCount = async () => {
+      try {
+        const res = await fetch(`${API_URL}/shop/products/${product.id}/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          setBuyerCount(data.purchase_count || 0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch buyer count:", err);
+      }
+    };
+
     fetchSellerCoins();
+    fetchBuyerCount();
   }, [product.seller_id]);
 
   return (
@@ -995,6 +1051,9 @@ function ProductCard({
           showTooltip={true}
           creator={product.seller_name}
         />
+        <span className="product-buyer-count">
+          {buyerCount} {lang === "fa" ? "خریدار" : "buyers"}
+        </span>
       </div>
       <h3 className="product-title">{product.title}</h3>
       <p className="product-description">{product.description}</p>
@@ -1014,6 +1073,8 @@ function ProductCard({
 function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
   const { lang } = useLang();
   const { getToken } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmProduct, setConfirmProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<"marketplace" | "library">(
     "marketplace"
   );
@@ -1065,31 +1126,47 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
   }, [activeTab, fetchMarketplace, fetchLibrary]);
 
   const handleBuy = async (product: Product) => {
-    const confirmed = window.confirm(
-      TEXT[lang].confirmPurchaseMsg.replace("{price}", product.price.toString())
-    );
-    if (!confirmed) return;
-
-    try {
-      const token = await getToken({ template: "fullname" });
-      const res = await fetch(`${API_URL}/shop/products/${product.id}/buy`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Purchase failed");
-      }
-      showAlert(TEXT[lang].alertProductBought);
-      fetchMarketplace(); // Refresh marketplace to potentially remove bought item
-    } catch (err: any) {
-      alert(err.message);
-    }
+    // open confirmation modal handled by parent component render
+    setConfirmProduct(product);
+    setConfirmOpen(true);
   };
 
   return (
     <div className="shop-container">
+      <PurchaseConfirmation
+        open={confirmOpen}
+        product={confirmProduct}
+        lang={lang}
+        onConfirm={async () => {
+          if (!confirmProduct) return;
+          setConfirmOpen(false);
+          try {
+            const token = await getToken({ template: "fullname" });
+            const res = await fetch(
+              `${API_URL}/shop/products/${confirmProduct.id}/buy`,
+              {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (!res.ok) {
+              const errData = await res.json();
+              showAlert(errData.detail || "Purchase failed");
+              return;
+            }
+            showAlert(TEXT[lang].alertProductBought);
+            fetchMarketplace();
+          } catch (err: any) {
+            showAlert(err.message || "Purchase failed");
+          } finally {
+            setConfirmProduct(null);
+          }
+        }}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setConfirmProduct(null);
+        }}
+      />
       <header className="main-header">
         <div className="shop-header">
           <h1>{TEXT[lang].shop}</h1>

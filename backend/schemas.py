@@ -1,7 +1,7 @@
 # schemas.py
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -25,8 +25,10 @@ class Comment(BaseModel):
     creator: str  # نام کاربری که کامنت را ایجاد کرده
     content: str  # محتوای کامنت
     created_at: datetime  # زمان ایجاد کامنت
-    likes: List[str] = []  # لیستی از شناسههای کاربرانی که این کامنت را لایک کردهاند
-    views: List[str] = []  # لیستی از شناسههای کاربرانی که این کامنت را مشاهده کردهاند
+    # لیستی از شناسههای کاربرانی که این کامنت را لایک کردهاند
+    likes: List[str] = []
+    # لیستی از شناسههای کاربرانی که این کامنت را مشاهده کردهاند
+    views: List[str] = []
 
 
 class CommentCreate(BaseModel):
@@ -44,8 +46,10 @@ class Posts(BaseModel):
     user_id: str  # شناسه کاربری که پست را ایجاد کرده
     title: str  # عنوان پست
     contains: str  # محتوای اصلی پست
-    likes: List[str] = []  # لیستی از شناسههای کاربرانی که این پست را لایک کردهاند
-    views: List[str] = []  # لیستی از شناسههای کاربرانی که این پست را مشاهده کردهاند
+    # لیستی از شناسههای کاربرانی که این پست را لایک کردهاند
+    likes: List[str] = []
+    # لیستی از شناسههای کاربرانی که این پست را مشاهده کردهاند
+    views: List[str] = []
 
 
 class PostCreate(BaseModel):
@@ -96,7 +100,11 @@ class LeaderboardEntry(BaseModel):
 class AdminUser(BaseModel):
     """مدل داده برای نمایش کاربر در پنل ادمین."""
 
-    id: int
+    # The users table in this project may not include an auto-increment `id`
+    # or `created_at` fields for all rows. Make these optional so the
+    # response model doesn't cause validation errors when those fields
+    # are absent.
+    id: Optional[int] = None
     user_id: str
     coins: int
-    created_at: datetime
+    created_at: Optional[datetime] = None

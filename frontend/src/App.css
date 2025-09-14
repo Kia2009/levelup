@@ -1984,6 +1984,19 @@ body::before {
     color: var(--color-text-secondary);
 }
 
+.product-buyer-count {
+    margin-left: auto;
+    background: linear-gradient(90deg, rgba(0,196,255,0.12), rgba(0,196,255,0.06));
+    color: var(--color-primary);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .product-title {
     font-size: 1.25rem;
     font-weight: 600;
