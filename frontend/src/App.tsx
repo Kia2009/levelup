@@ -585,6 +585,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("profile");
+            window.history.pushState(null, "", "/profile");
           }}
         >
           <svg viewBox="0 0 24 24">
@@ -600,6 +601,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("shop");
+            window.history.pushState(null, "", "/shop");
           }}
         >
           <svg
@@ -625,6 +627,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("leaderboard");
+            window.history.pushState(null, "", "/leaderboard");
           }}
         >
           <svg
@@ -650,6 +653,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
             onClick={(e) => {
               e.preventDefault();
               setPage("admin");
+              window.history.pushState(null, "", "/admin");
             }}
           >
             <svg viewBox="0 0 24 24">
@@ -665,6 +669,7 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("settings");
+            window.history.pushState(null, "", "/settings");
           }}
         >
           <svg viewBox="0 0 24 24">
@@ -741,6 +746,7 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("profile");
+            window.history.pushState(null, "", "/profile");
           }}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -766,6 +772,7 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("shop");
+            window.history.pushState(null, "", "/shop");
           }}
         >
           <svg
@@ -796,6 +803,7 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
           onClick={(e) => {
             e.preventDefault();
             setPage("settings");
+            window.history.pushState(null, "", "/settings");
           }}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -906,7 +914,10 @@ function MainFeed({
         <div className="main-header-content">
           <button
             className="leaderboard-icon-btn"
-            onClick={() => setPage("leaderboard")}
+            onClick={() => {
+              setPage("leaderboard");
+              window.history.pushState(null, "", "/leaderboard");
+            }}
             title={TEXT[lang].leaderboard}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1473,13 +1484,23 @@ function App() {
         window.history.pushState(null, "", "/");
         setPage("feed");
       }
+    } else if (path === "/profile") {
+      setPage("profile");
+    } else if (path === "/settings") {
+      setPage("settings");
+    } else if (path === "/about") {
+      setPage("about");
     } else {
       const match = path.match(/^\/(\d+)$/);
       if (match) {
         setSelectedPostId(match[1]);
+      } else {
+        // If no route matches, redirect to home
+        window.history.pushState(null, "", "/");
+        setPage("feed");
       }
     }
-  }, []);
+  }, [user]); // Add user as dependency to re-run when user loads
 
   useEffect(() => {
     const handleRouteChange = () => {
