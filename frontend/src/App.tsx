@@ -520,12 +520,16 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
   const { getToken } = useAuth();
   const [coins, setCoins] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const fetchUserCoins = async () => {
       if (isSignedIn && user?.id) {
         try {
-          setLoading(true);
+          // Only show loading on very first fetch
+          if (!initialized) {
+            setLoading(true);
+          }
           const token = await getToken({ template: "fullname" });
           const response = await fetch(`${API_URL}/getcoins`, {
             headers: {
@@ -538,14 +542,21 @@ function SideNavigation({ currentPage, setPage }: NavProps) {
         } catch (error) {
           console.error("Failed to fetch user coins:", error);
           setCoins(0);
-        } finally {
-          setLoading(false);
         }
       }
     };
 
-    fetchUserCoins();
-  }, [user?.id, isSignedIn]);
+    if (isSignedIn) {
+      fetchUserCoins();
+      // Set loading and initialized after first fetch
+      if (!initialized) {
+        setLoading(false);
+        setInitialized(true);
+      }
+      const interval = setInterval(fetchUserCoins, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [isSignedIn, user?.id, getToken, initialized]);
 
   const _is_admin = (user: any) => {
     if (!user) return false;
@@ -687,12 +698,18 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
   const { lang } = useLang();
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
-  const [coins, setCoins] = useState(0);
+  const [coins, setCoins] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true); // Only for initial load
+  const [initialized, setInitialized] = useState(false); // Track initialization
 
   useEffect(() => {
     const fetchUserCoins = async () => {
-      if (user?.id) {
+      if (isSignedIn && user?.id) {
         try {
+          // Only show loading on first fetch
+          if (!initialized) {
+            setLoading(true);
+          }
           const token = await getToken({ template: "fullname" });
           const response = await fetch(`${API_URL}/getcoins`, {
             headers: {
@@ -700,19 +717,24 @@ function BottomNavigation({ currentPage, setPage }: NavProps) {
             },
           });
           if (!response.ok) throw new Error("Failed to fetch coins");
-          const coins = await response.json();
-          setCoins(coins);
+          const data = await response.json();
+          setCoins(data);
         } catch (error) {
           console.error("Failed to fetch user coins:", error);
+          setCoins(0);
+        } finally {
+          setLoading(false);
+          setInitialized(true);
         }
       }
     };
+
     if (isSignedIn) {
       fetchUserCoins();
-      const interval = setInterval(fetchUserCoins, 10000); // Refresh coins every 10 seconds
+      const interval = setInterval(fetchUserCoins, 10000);
       return () => clearInterval(interval);
     }
-  }, [user?.id, isSignedIn]);
+  }, [isSignedIn, user?.id, getToken]);
 
   return (
     <nav className="bottom-navigation">
@@ -1865,11 +1887,9 @@ function ShopPage({ showAlert }: { showAlert: (message: string) => void }) {
           className={`shop-tab ${activeTab === "marketplace" ? "active" : ""}`}
           onClick={() => setActiveTab("marketplace")}
         >
-
           {TEXT[lang].marketplace}
         </button>
         <button
-
           className={`shop-tab ${activeTab === "library" ? "active" : ""}`}
           onClick={() => setActiveTab("library")}
         >

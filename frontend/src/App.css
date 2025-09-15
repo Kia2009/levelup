@@ -700,36 +700,51 @@ body::before {
     }
 }
 
-/* Update profile posts for mobile only */
+/* Update profile posts for mobile */
 @media (max-width: 768px) {
-    .profile-posts .post-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        padding: 0;
-        margin: 0;
-        width: 100%;
-    }
+  .profile-posts {
+    width: 100%;
+  }
 
-    .profile-posts .post-list .post-card {
-        width: 100%;
-        margin: 0;
-        border-radius: 12px;
-        box-sizing: border-box;
-    }
+  .profile-posts .post-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+  }
 
-    .profile-posts {
-        padding: 0 16px;
-        width: 100%;
-        box-sizing: border-box;
-    }
+  .profile-posts .post-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .profile-container {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
-@media (min-width: 1200px) {
-    .post-list {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        align-items: center;
-    }
+/* Remove minimum width constraints */
+@media (max-width: 480px) {
+  .post-list {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .profile-posts .post-list {
+    padding: 8px;
+  }
+
+  .profile-posts .post-card {
+    width: 100%;
+    margin: 0;
+  }
+
+  .post-card {
+    width: 100%;
+  }
 }
 
 .post-card {
@@ -2104,18 +2119,6 @@ body::before {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.library-item {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.library-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
 /* Sell Product Modal */
